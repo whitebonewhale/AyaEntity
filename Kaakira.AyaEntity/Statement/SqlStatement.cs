@@ -1,10 +1,10 @@
-﻿using KiraEntity.Tools;
+﻿using AyaEntity.Tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-namespace KiraEntity.Base
+namespace AyaEntity.Base
 {
 
 	/// <summary>

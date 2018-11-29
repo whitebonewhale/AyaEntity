@@ -4,10 +4,15 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <RootNamespace>AyaEntity</RootNamespace>
     <AssemblyName>AyaEntity</AssemblyName>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <Optimize>false</Optimize>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="ClientBase\MysqlBase.cs" />
     <Compile Remove="RSAWrapper.cs" />
   </ItemGroup>
 

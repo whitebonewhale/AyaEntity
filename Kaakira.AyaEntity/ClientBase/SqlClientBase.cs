@@ -1,13 +1,13 @@
 ﻿using Dapper;
-using KiraEntity.SQLTools;
-using KiraEntity.Tools;
+using AyaEntity.SQLTools;
+using AyaEntity.Tools;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Reflection;
 
-namespace KiraEntity.Base
+namespace AyaEntity.Base
 {
 	/// <summary>
 	/// 
@@ -29,7 +29,12 @@ namespace KiraEntity.Base
 		}
 
 
-		protected string GettableName(Type type)
+
+        public int Execute(string sql,object param)
+        {
+            return this.Connection.Execute(sql, param);
+        }
+		protected string GetTableName(Type type)
 		{
 			object[] name = type.GetCustomAttributes(typeof(TableNameAttribute), false);
 			if (name.Length > 0)
@@ -51,12 +56,12 @@ namespace KiraEntity.Base
 
 		public T GetFirst<T>(object dyparam = null)
 		{
-			string tableName = GettableName(typeof(T));
+			string tableName = GetTableName(typeof(T));
 			return this.Connection.QueryFirstOrDefault<T>(state.ToSelect(tableName, dyparam?.GetType()), dyparam);
 		}
 		public T Get<T>(object dyparam = null)
 		{
-			string tableName = GettableName(typeof(T));
+			string tableName = GetTableName(typeof(T));
 			return this.Connection.QuerySingleOrDefault<T>(state.ToSelect(tableName, dyparam?.GetType()), dyparam);
 		}
 		public T GetCustom<T>(string tableName, object sqlParameter, string clause = null)
@@ -79,7 +84,7 @@ namespace KiraEntity.Base
 		/// <returns></returns>
 		public IEnumerable<T> GetList<T>(object dyparam = null)
 		{
-			string tableName = GettableName(typeof(T));
+			string tableName = GetTableName(typeof(T));
 
 			return this.Connection.Query<T>(state.ToSelect(tableName, dyparam?.GetType()), dyparam);
 		}
@@ -111,7 +116,7 @@ namespace KiraEntity.Base
 		{
 			if (dyparam == null)
 				throw new ArgumentNullException("dyparam");
-			string tableName = GettableName(typeof(T));
+			string tableName = GetTableName(typeof(T));
 
 			Connection.Execute(state.ToInsert(tableName, dyparam?.GetType()), dyparam);
 		}
@@ -125,7 +130,7 @@ namespace KiraEntity.Base
 				throw new ArgumentException("where idkey参数至少有一个");
 			}
 
-			string tableName = GettableName(typeof(T));
+			string tableName = GetTableName(typeof(T));
 
 			return this.Connection.Execute(state.ToUpdate(tableName, dyparam?.GetType(), idkey), dyparam);
 		}
@@ -133,7 +138,7 @@ namespace KiraEntity.Base
 		public int AddList<T>(IEnumerable<T> entitylist)
 		{
 			Type objType = typeof(T);
-			string tableName = GettableName(objType);
+			string tableName = GetTableName(objType);
 
 			return this.Connection.Execute(state.ToInsert(tableName, objType), entitylist);
 		}
@@ -145,13 +150,13 @@ namespace KiraEntity.Base
 		/// <returns></returns>
 		public int Clear<T>()
 		{
-			string tableName = GettableName(typeof(T));
+			string tableName = GetTableName(typeof(T));
 			return this.Connection.Execute("truncate table " + tableName);
 		}
 
 		public int Delete<T>(object dyparam)
 		{
-			string tableName = GettableName(typeof(T));
+			string tableName = GetTableName(typeof(T));
 
 			return this.Connection.Execute(state.ToDelete(tableName, dyparam?.GetType()), dyparam);
 		}

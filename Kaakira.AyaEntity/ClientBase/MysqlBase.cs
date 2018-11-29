@@ -1,21 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using AyaEntity.SQLTools;
+using AyaEntity.Tools;
 using Dapper;
+using MySql.Data.MySqlClient;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using System.Data.SqlClient;
-using System.Configuration;
-using System.Reflection;
-using System.Data;
-using System.Data.Common;
-using KakiEntity.Base;
-using MySql.Data.MySqlClient;
-using KiraEntity.Base;
-using KiraEntity;
-using KiraEntity.Tools;
 
-namespace KakiEntity.Base
+namespace AyaEntity.Base
 {
     public class MySqlBase : SqlClientBase
     {
@@ -65,20 +57,22 @@ namespace KakiEntity.Base
         }
 
 
-        public override IEnumerable<T> GetCustomPageList<T>(Pagination pag, string tableName, string caluse, string columns = null)
+        public override PagingResult<T> GetCustomPageList<T>(Pagination pag, string tableName, string caluse, string columns = null)
         {
             IEnumerable<string> fields = pag.DyParameters.ParameterNames;
             if (string.IsNullOrEmpty(caluse))
             {
                 caluse = fields.Join(" and ", m => m + "=@" + m);
             }
-            StringBuilder sqlmem = BuildePageQuerySql(pag, tableName, caluse);
-            pag.TotalCount = this.Connection.ExecuteScalar<int>(BuildPageQueryTotal(tableName, caluse).ToString(), pag.PageDyParameters);
-            return this.Connection.Query<T>(sqlmem.ToString(), pag.PageDyParameters);
+            return new PagingResult<T>
+            {
+                Total = this.Connection.ExecuteScalar<int>(BuildPageQueryTotal(tableName, caluse).ToString(), pag.PageDyParameters),
+                Rows = this.Connection.Query<T>(BuildePageQuerySql(pag, tableName, caluse).ToString(), pag.PageDyParameters)
+            };
         }
 
 
-        public override IEnumerable<T> GetPageList<T>(Pagination pag, string caluse = null)
+        public override PagingResult<T> GetPageList<T>(Pagination pag, string caluse = null)
         {
             IEnumerable<string> fields = pag.DyParameters.ParameterNames;
             if (string.IsNullOrEmpty(caluse))
@@ -86,14 +80,19 @@ namespace KakiEntity.Base
                 caluse = fields.Join(" and ", m => m + "=@" + m);
             }
             string tableName = this.GetTableName(typeof(T));
-            StringBuilder sqlmem = BuildePageQuerySql(pag, tableName, caluse);
-            pag.TotalCount = this.Connection.ExecuteScalar<int>(BuildPageQueryTotal(tableName, caluse).ToString(), pag.PageDyParameters);
-            return this.Connection.Query<T>(sqlmem.ToString(), pag.PageDyParameters);
+            return new PagingResult<T>
+            {
+                Total = this.Connection.ExecuteScalar<int>(BuildPageQueryTotal(tableName, caluse).ToString(), pag.PageDyParameters),
+                Rows = this.Connection.Query<T>(BuildePageQuerySql(pag, tableName, caluse).ToString(), pag.PageDyParameters)
+            };
         }
 
-    public override int AutoIdByAdd<T>(T data)
-    {
-      throw new NotImplementedException();
+        public override int AutoIdByAdd<T>(T dyparam)
+        {
+            if (dyparam == null)
+                throw new ArgumentNullException("dyparam");
+            string tableName = GetTableName(typeof(T));
+            return Connection.ExecuteScalar<int>(state.ToInsert(tableName, dyparam?.GetType()) + ";select @@IDENTITY;", dyparam);
+        }
     }
-  }
 }

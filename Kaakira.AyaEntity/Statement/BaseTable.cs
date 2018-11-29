@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KiraEntity.Base
+namespace AyaEntity.Base
 {
     public class BaseTable
     {

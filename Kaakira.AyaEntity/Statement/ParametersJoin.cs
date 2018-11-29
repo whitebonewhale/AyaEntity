@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KiraEntity.Tools
+namespace AyaEntity.Tools
 {
     public static class ParametersJoin
     {

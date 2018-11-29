@@ -3,7 +3,7 @@ using System.Linq;
 using System.Reflection;
 using System.Xml.Linq;
 
-namespace WebConsole.KiraEntity
+namespace WebConsole.AyaEntity
 {
 	public class XMLConvert
 	{

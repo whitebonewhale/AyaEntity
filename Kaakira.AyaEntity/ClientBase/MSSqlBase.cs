@@ -1,13 +1,13 @@
 ﻿using Dapper;
-using KiraEntity.SQLTools;
-using KiraEntity.Tools;
+using AyaEntity.SQLTools;
+using AyaEntity.Tools;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 
-namespace KiraEntity.Base
+namespace AyaEntity.Base
 {
 
 
@@ -111,7 +111,7 @@ namespace KiraEntity.Base
 				caluse = fields.Join(" and ", m => m + "=@" + m);
 			}
 
-			String tableName = typeof(T).Name;
+            string tableName = GetTableName(typeof(T));
 			StringBuilder sqlmem = BuildePageQuerySql(pag, tableName, caluse);
 			return new PagingResult<T>
 			{
@@ -130,7 +130,7 @@ namespace KiraEntity.Base
 		/// <returns></returns>
 		public IEnumerable<T> TraceParentsCTE<T>(string id, object param, string cteParent = "ParentId")
 		{
-			String tableName = typeof(T).Name;
+			String tableName = GetTableName(typeof(T));
 
 			string sql = $@"
 WITH CTE AS 
@@ -149,7 +149,7 @@ SELECT * FROM CTE";
 
 			if (dyparam == null)
 				throw new ArgumentNullException("dyparam");
-			string tableName = GettableName(typeof(T));
+			string tableName = GetTableName(typeof(T));
 
 			return Connection.ExecuteScalar<int>(state.ToInsert(tableName, dyparam?.GetType()) + ";select @@identity", dyparam);
 		}

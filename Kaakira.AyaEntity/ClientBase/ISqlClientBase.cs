@@ -1,8 +1,8 @@
-﻿using KiraEntity.SQLTools;
+﻿using AyaEntity.SQLTools;
 using System.Collections.Generic;
 using System.Data;
 
-namespace KiraEntity.Base
+namespace AyaEntity.Base
 {
 	/// <summary>
 	/// Connection 接口
