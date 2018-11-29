@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>AyaEntity</AssemblyName>
+    <RootNamespace>AyaEntity</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="RSAWrapper.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Dapper" Version="1.50.5" />
+    <PackageReference Include="MySql.Data" Version="8.0.13" />
+  </ItemGroup>
+
+</Project>

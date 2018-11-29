@@ -16,6 +16,7 @@ namespace AyaEntity.Base
 	{
 		public string ConnectionString { get; private set; }
 		protected SqlStatement state = new SqlStatement();
+
 		public SqlClientBase(string connstr)
 		{
 			this.ConnectionString = connstr;

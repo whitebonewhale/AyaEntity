@@ -49,7 +49,7 @@ namespace AyaEntity.Base
         private StringBuilder BuildPageQueryTotal(string tableName, string caluse)
         {
             StringBuilder sqlmem = new StringBuilder("SELECT count(*) from " + tableName);
-            if (string.IsNullOrEmpty(caluse))
+            if (!string.IsNullOrEmpty(caluse))
             {
                 sqlmem.Append(" where ").Append(caluse);
             }
