@@ -35,7 +35,11 @@ namespace AyaEntity.Base
         {
             return this.Connection.Execute(sql, param);
         }
-		protected string GetTableName(Type type)
+        public IEnumerable<T> Query<T>(string sql, object param = null)
+        {
+            return this.Connection.Query<T>(sql, param);
+        }
+        protected string GetTableName(Type type)
 		{
 			object[] name = type.GetCustomAttributes(typeof(TableNameAttribute), false);
 			if (name.Length > 0)
@@ -173,6 +177,8 @@ namespace AyaEntity.Base
 		public abstract PagingResult<T> GetCustomPageList<T>(Pagination pag, string tableName, string clause, string columns);
 
 		public abstract int AutoIdByAdd<T>(T data);
-	}
+
+
+    }
 }
 

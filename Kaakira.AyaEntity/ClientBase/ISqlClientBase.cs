@@ -13,10 +13,13 @@ namespace AyaEntity.Base
 		IDbConnection Connection { get; }
 
 
-		/// <summary>
-		/// 简单条件获取单个对象
-		/// </summary>
-		T GetFirst<T>(object dyparam = null);
+        int Execute(string sql, object param = null);
+        IEnumerable<T> Query<T>(string sql, object param = null);
+
+        /// <summary>
+        /// 简单条件获取单个对象
+        /// </summary>
+        T GetFirst<T>(object dyparam = null);
 		T Get<T>(object dyparam = null);
 		/// <summary>
 		/// 自定义条件获取单个对象
