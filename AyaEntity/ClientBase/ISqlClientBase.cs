@@ -12,8 +12,20 @@ namespace AyaEntity.Base
 		string ConnectionString { get; }
 		IDbConnection Connection { get; }
 
-
+        /// <summary>
+        /// 执行sql语句，返回影响行数
+        /// </summary>
+        /// <param name="sql"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         int Execute(string sql, object param = null);
+        /// <summary>
+        /// 执行查询语句
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="sql"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         IEnumerable<T> Query<T>(string sql, object param = null);
 
         /// <summary>
