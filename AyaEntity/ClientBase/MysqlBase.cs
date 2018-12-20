@@ -37,7 +37,7 @@ namespace AyaEntity.Base
                 sqlmem.Append(" where ").Append(caluse);
             }
             sqlmem.Append(" Order by ").Append(pag.OrderField).Append(" ").Append(pag.OrderType);
-            sqlmem.Append(" limit @StartRow,@PageSize;");
+            sqlmem.Append(" limit @StartRow,@RowSize;");
             return sqlmem;
         }
         /// 构建分页查询数据总条数语句
@@ -82,6 +82,8 @@ namespace AyaEntity.Base
             string tableName = this.GetTableName(typeof(T));
             return new PagingResult<T>
             {
+                PageIndex = pag.PageIndex,
+                RowSize = pag.RowSize,
                 Total = this.Connection.ExecuteScalar<int>(BuildPageQueryTotal(tableName, caluse).ToString(), pag.PageDyParameters),
                 Rows = this.Connection.Query<T>(BuildePageQuerySql(pag, tableName, caluse).ToString(), pag.PageDyParameters)
             };
