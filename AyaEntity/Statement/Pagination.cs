@@ -10,11 +10,11 @@ namespace AyaEntity
     public class Pagination
     {
         public string TableName { get; set; }
-        public int RowSize { get; set; }
+        public int PageSize { get; set; }
         public int PageIndex { get; set; }
-        public int StartRow { get { return (PageIndex - 1) * RowSize; } }
+        public int StartRow { get { return (PageIndex - 1) * PageSize; } }
         public int TotalCount { get; set; }
-        public int TotalPage => (int)Math.Ceiling(TotalCount * 1.00 / RowSize);
+        public int TotalPage => (int)Math.Ceiling(TotalCount * 1.00 / PageSize);
         public bool HasParameter => _dyparam.ParameterNames.Count() > 0;
         public DynamicParameters DyParameters => _dyparam;
         /// <summary>
@@ -30,7 +30,7 @@ namespace AyaEntity
             {
                 DynamicParameters pd = new DynamicParameters(_dyparam);
                 pd.Add("@StartRow", StartRow);
-                pd.Add("@RowSize", RowSize);
+                pd.Add("@PageSize", PageSize);
                 pd.Add("@OrderField", OrderField);
                 return pd;
             }
@@ -48,7 +48,7 @@ namespace AyaEntity
         public Pagination(string field, string type)
         {
             this.PageIndex = 1;
-            this.RowSize = 10;
+            this.PageSize = 10;
             this.OrderField = field;
             this.OrderType = type;
         }
@@ -57,14 +57,14 @@ namespace AyaEntity
         {
             this.OrderType = type;
             this.OrderField = field;
-            this.RowSize = ps;
+            this.PageSize = ps;
             this.PageIndex = pi < 1 ? 1 : pi;
         }
 
         public Pagination()
         {
             this.PageIndex = 1;
-            this.RowSize = 10;
+            this.PageSize = 10;
         }
 
         public void AddParameter(string key, object value)

@@ -40,7 +40,7 @@ namespace AyaEntity.Base
             {
                 columns = "*";
             }
-            StringBuilder sqlmem = new StringBuilder("SELECT TOP " + pag.RowSize + " " + columns + " FROM ");
+            StringBuilder sqlmem = new StringBuilder("SELECT TOP " + pag.PageSize + " " + columns + " FROM ");
             sqlmem.Append("( SELECT ").Append(" ROW_NUMBER() OVER(ORDER BY " + pag.OrderField + " " + pag.OrderType);
             sqlmem.Append(") AS RowNo,").Append(columns).Append(" from ").Append(tableName);
             if (!string.IsNullOrEmpty(caluse))
