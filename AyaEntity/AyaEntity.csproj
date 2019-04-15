@@ -12,6 +12,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="MsSql\**" />
+    <EmbeddedResource Remove="MsSql\**" />
+    <None Remove="MsSql\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Remove="RSAWrapper.cs" />
   </ItemGroup>
 
