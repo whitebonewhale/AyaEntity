@@ -6,12 +6,51 @@ using System.Reflection;
 using System.Text;
 namespace AyaEntity.SqlStatement
 {
-
-
-
-
-  public abstract class SqlBuilder : ISqlBuilder
+  public enum SortType
   {
+    asc,
+    desc
+  }
+
+  public enum CaluseOpertor
+  {
+    and,
+    or
+  }
+
+  /// <summary>
+  /// select sql语句生成,实现其他select复杂语句可继承此类扩展重写即可
+  /// </summary>
+  public class SelectStatement : ISqlBuilder
+  {
+    // where语句连接运算符: and/or
+    public CaluseOpertor caluseOpertor = CaluseOpertor.and;
+    public SortType sortType = SortType.desc;
+    public string sortField;
+
+
+    public SqlAttribute SqlAttribute()
+    {
+      return this.attribute;
+    }
+    // sql参数
+
+    public DynamicParameters SqlParameters()
+    {
+      return this.parameters;
+    }
+
+
+    private string[] columns={"*"};
+    private string tableName;
+    private string whereCaluseString ;
+    private string[] groupFields;
+    private SqlAttribute attribute = new SqlAttribute();
+    private DynamicParameters parameters;
+    private object entityParameters;
+
+
+
 
     #region old
 
@@ -140,137 +179,101 @@ namespace AyaEntity.SqlStatement
     //}
     #endregion
 
-    private Type entityType;
 
-    private readonly SqlAttribute attribute = new SqlAttribute();
-    private StringBuilder sqlBuffer =new StringBuilder();
-
-    private DynamicParameters parameters;
-    private object objectParameters;
-
-    public DynamicParameters Parameters => parameters;
-
-
-    public SqlBuilder(Type entityType, object param)
-    {
-      if (param != null)
-      {
-        parameters = new DynamicParameters();
-        parameters.AddDynamicParams(param);
-        objectParameters = param;
-      }
-      this.entityType = entityType;
-    }
-
-
+    /// <summary>
+    /// 生成sql
+    /// </summary>
+    /// <returns></returns>
     public string Build()
     {
-      return sqlBuffer.ToString();
+      StringBuilder buffer = new StringBuilder();
+      // select
+      buffer.Append("SELECT ").Append(this.columns.Join(",", m => m));
+      // from
+      buffer.Append(" FROM ").Append(this.tableName);
+      // where
+      if (!string.IsNullOrEmpty(this.whereCaluseString))
+      {
+        buffer.Append(" WHERE ").Append(this.whereCaluseString);
+      }
+      // group
+      if (!this.groupFields.IsEmpty())
+      {
+        buffer.Append(" GROUP BY " + this.groupFields.Join(",", m => m));
+      }
+      // sort 
+      if (!string.IsNullOrEmpty(this.sortField))
+      {
+        buffer.Append(" ORDER BY ").Append(this.sortField).Append(" " + this.sortType.ToString());
+      }
+      return buffer.ToString();
     }
 
 
-    #region paging 
+
+    public SelectStatement Select(params string[] columns)
+    {
+      this.columns = columns;
+      return this;
+    }
+
+
+    public SelectStatement From(string tableName)
+    {
+      this.tableName = tableName;
+      return this;
+    }
+
     /// <summary>
-    /// 分页查询语句
+    /// 自定义where子句
     /// </summary>
-    /// <param name="pag"></param>
-    /// <param name="tableName"></param>
     /// <param name="caluse"></param>
+    /// <param name="parameters"></param>
     /// <returns></returns>
-    public abstract string CreatePagingQuery(PagingParameter pag);
-
-
-
-
-    #endregion
-
-    #region select
-
-    public ISqlBuilder SelectDefault()
+    public SelectStatement Where(params string[] whereCaluse)
     {
-      SelectAll()
-        .From(attribute.GetTableName(entityType))
-        .Where(attribute.GetCaluse(objectParameters));
+      this.whereCaluseString = whereCaluse.Join($" {this.caluseOpertor.ToString()} ", m => m);
+      return this;
+    }
+
+    /// <summary>
+    /// 自定义where子句并设置参数
+    /// </summary>
+    /// <param name="caluse"></param>
+    /// <param name="parameters"></param>
+    /// <returns></returns>
+    public SelectStatement Where<T>(T entity, params string[] caluse)
+    {
+      this.parameters = new DynamicParameters(entity);
+      return this.Where(caluse);
+    }
+
+
+    /// <summary>
+    /// 根据参数自动生成默认caluse语句
+    /// </summary>
+    /// <param name="parameters"></param>
+    /// <returns></returns>
+    public SelectStatement WhereAutoCaluse<T>(T entity)
+    {
+      this.parameters = new DynamicParameters(entity);
+      this.whereCaluseString = this.attribute.GetCaluse(this.parameters, this.caluseOpertor.ToString());
       return this;
     }
 
 
-    public ISqlBuilder Select()
+
+    /// <summary>
+    /// 自定义分组
+    /// </summary>
+    /// <param name="fields"></param>
+    /// <returns></returns>
+    public SelectStatement Group(params string[] fields)
     {
-      sqlBuffer.Append("select ").Append(attribute.GetColumns(entityType));
+      this.groupFields = fields;
       return this;
     }
-
-
-    public ISqlBuilder SelectAll()
-    {
-      sqlBuffer.Append("select * ");
-      return this;
-    }
-
-
-    public ISqlBuilder Select(string[] fields)
-    {
-      sqlBuffer.Append("select ").Append(fields.Join(",", m => m));
-      return this;
-    }
-
-    public ISqlBuilder SelectFrom()
-    {
-      string tableName = attribute.GetTableName(entityType);
-      sqlBuffer.Append("select * From ").Append(tableName);
-
-      return this;
-    }
-
-    #endregion
-
-    #region update
-    #endregion
-
-    #region delete
-    #endregion
-
-    #region add
-    #endregion
-
-
-
-    #region from
-
-
-    public ISqlBuilder From()
-    {
-      throw new NotImplementedException();
-    }
-
-    public ISqlBuilder From(string tableName)
-    {
-      sqlBuffer.Append(" ").Append(tableName);
-      return this;
-    }
-
-    #endregion
-
-    #region where
-    public ISqlBuilder Where()
-    {
-      throw new NotImplementedException();
-    }
-
-    public ISqlBuilder Where<T>()
-    {
-      throw new NotImplementedException();
-    }
-
-
-    public ISqlBuilder Where(string caluse)
-    {
-      sqlBuffer.Append(" ").Append(caluse);
-      return this;
-    }
-    #endregion
-
 
   }
+
 }

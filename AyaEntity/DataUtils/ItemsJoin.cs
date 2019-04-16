@@ -1,19 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace AyaEntity
 {
   /// <summary>
   /// 数组join字符串扩展工具类
-  /// 主要用于生成及拼接sql
+  /// 主要用于拼接sql
   /// </summary>
   public static class ItemsJoin
   {
+
+    public static bool IsEmpty(this Array array)
+    {
+      return array == null && array.Length == 0;
+    }
+
     public static string Join<Key, Value>(this Dictionary<Key, Value> item, string separator, Func<KeyValuePair<Key, Value>, string> func)
     {
+
       if (separator == null)
+      {
         separator = String.Empty;
+      }
 
       StringBuilder strmem = new StringBuilder();
       using (var en = item.GetEnumerator())
@@ -34,7 +44,9 @@ namespace AyaEntity
     public static string Join<T>(this IEnumerable<T> item, string separator, Func<T, string> func)
     {
       if (separator == null)
+      {
         separator = String.Empty;
+      }
 
       StringBuilder strmem = new StringBuilder();
       using (var en = item.GetEnumerator())

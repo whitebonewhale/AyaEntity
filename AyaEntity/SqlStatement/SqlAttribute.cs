@@ -41,20 +41,20 @@ namespace AyaEntity.SqlStatement
     /// <param name="entity"></param>
     /// <param name="parameters"></param>
     /// <returns></returns>
-    public string GetCaluse(object entity)
+    public string GetCaluse<T>(T entity, string opertor)
     {
-      IEnumerable<PropertyInfo> fields = entity.GetType().GetProperties();
-      return fields.Join(" and ", m =>
-      {
-        if ((typeof(IEnumerable<object>).IsAssignableFrom(m.PropertyType)))
-        {
-          return m.Name + " in @" + m.Name;
-        }
-        else
-        {
-          return m.Name + "=@" + m.Name;
-        }
-      });
+      IEnumerable<PropertyInfo> fields = typeof(T).GetProperties();
+      return fields.Join(" " + opertor + " ", m =>
+          {
+            if ((typeof(IEnumerable<object>).IsAssignableFrom(m.PropertyType)))
+            {
+              return m.Name + " in @" + m.Name;
+            }
+            else
+            {
+              return m.Name + "=@" + m.Name;
+            }
+          });
     }
 
   }
