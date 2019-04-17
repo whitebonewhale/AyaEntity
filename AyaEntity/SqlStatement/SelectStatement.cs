@@ -23,31 +23,44 @@ namespace AyaEntity.SqlStatement
   /// </summary>
   public class SelectStatement : ISqlBuilder
   {
+
+
     // where语句连接运算符: and/or
     public CaluseOpertor caluseOpertor = CaluseOpertor.and;
     public SortType sortType = SortType.desc;
     public string sortField;
 
 
+
     public SqlAttribute SqlAttribute()
     {
+
       return this.attribute;
     }
     // sql参数
-
-    public DynamicParameters SqlParameters()
+    private static SelectStatement self;
+    public static SelectStatement Build()
     {
-      return this.parameters;
+      if (self == null)
+      {
+        self = new SelectStatement();
+      }
+      return self;
     }
 
+    public DynamicParameters SqlParameters => this.parameters;
 
-    private string[] columns={"*"};
-    private string tableName;
-    private string whereCaluseString ;
-    private string[] groupFields;
-    private SqlAttribute attribute = new SqlAttribute();
-    private DynamicParameters parameters;
-    private object entityParameters;
+    private SelectStatement()
+    {
+
+    }
+    protected string[] columns={"*"};
+    protected string tableName;
+    protected string whereCaluseString ;
+    protected string[] groupFields;
+    protected SqlAttribute attribute = new SqlAttribute();
+    protected DynamicParameters parameters;
+    protected object entityParameters;
 
 
 
@@ -184,7 +197,7 @@ namespace AyaEntity.SqlStatement
     /// 生成sql
     /// </summary>
     /// <returns></returns>
-    public string Build()
+    public virtual string ToSql()
     {
       StringBuilder buffer = new StringBuilder();
       // select
@@ -254,7 +267,7 @@ namespace AyaEntity.SqlStatement
     /// </summary>
     /// <param name="parameters"></param>
     /// <returns></returns>
-    public SelectStatement WhereAutoCaluse<T>(T entity)
+    public PagingQueryStatement WhereAutoCaluse<T>(T entity)
     {
       this.parameters = new DynamicParameters(entity);
       this.whereCaluseString = this.attribute.GetCaluse(this.parameters, this.caluseOpertor.ToString());
@@ -268,7 +281,7 @@ namespace AyaEntity.SqlStatement
     /// </summary>
     /// <param name="fields"></param>
     /// <returns></returns>
-    public SelectStatement Group(params string[] fields)
+    public PagingQueryStatement Group(params string[] fields)
     {
       this.groupFields = fields;
       return this;

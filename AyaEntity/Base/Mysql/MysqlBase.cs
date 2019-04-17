@@ -19,8 +19,10 @@ namespace AyaEntity.Base.Mysql
 
 
 
-    public PagingResult<T> PagingQuery<T>(PagingParameter pag, string caluse)
+    public PagingResult<T> PagingQuery<T>(PagingQueryStatement sql)
     {
+
+      return 
       IEnumerable<string> fields = pag.Parameters.ParameterNames;
       if (pag.TableName == null)
       {

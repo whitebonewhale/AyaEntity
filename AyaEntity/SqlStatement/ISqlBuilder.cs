@@ -1,4 +1,5 @@
-﻿using Dapper;
+﻿using AyaEntity.Base;
+using Dapper;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,9 +11,11 @@ namespace AyaEntity.SqlStatement
   /// </summary>
   public interface ISqlBuilder
   {
-    DynamicParameters SqlParameters();
+    DynamicParameters SqlParameters { get; }
 
     SqlAttribute SqlAttribute();
-    string Build();
+    string ToSql();
+
+    
   }
 }
