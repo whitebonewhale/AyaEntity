@@ -5,18 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace AyaEntity.SqlStatement
-
 {
-  /// <summary>
-  /// sql语句操作类型
-  /// </summary>
-  public enum SqlClause
-  {
-    Like,
-    NotIn,
-    In,
-    Equal,
-  }
+
   public enum SqlOperate
   {
     Update,
@@ -24,6 +14,28 @@ namespace AyaEntity.SqlStatement
     Select,
     Delete
   }
+  public enum SortType
+  {
+    asc,
+    desc
+  }
+
+  public enum CaluseOpertor
+  {
+    and,
+    or
+  }
+
+
+  public class StatementOperateAttribute : Attribute
+  {
+    public SqlOperate Operate;
+    public StatementOperateAttribute(SqlOperate operate)
+    {
+      this.Operate = operate;
+    }
+  }
+
 
   public class NotMappedAttribute : Attribute
   {
@@ -45,7 +57,7 @@ namespace AyaEntity.SqlStatement
     public string TableName { get; set; }
     public TableNameAttribute(string tbName)
     {
-      TableName = tbName;
+      this.TableName = tbName;
     }
   }
 }

@@ -1,5 +1,7 @@
-﻿using AyaEntity.SqlStatement;
+﻿using AyaEntity.SqlServices;
+using AyaEntity.SqlStatement;
 using Dapper;
+using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -7,14 +9,48 @@ using System.Data.SqlClient;
 
 namespace AyaEntity.Base
 {
+
+
+  /// <summary>
+  /// 配置项
+  /// </summary>
+  public struct StatementOption
+  {
+    public string CurrentServiceKey;
+    public Dictionary<string,StatementService> servicesPool;
+    // service调用方法
+    public string ServiceMethod;
+  }
+
+
   /// <summary>
   /// SQLDAO 数据交互类，
   /// 角色：兼职sql语句管理者（控制sql建造者）
   /// </summary>
-  public abstract class SqlManager
+  public class SqlManager
   {
 
-    private SqlAttribute attribute = new SqlAttribute();
+    /// <summary>
+    /// service option 结构
+    /// </summary>
+    protected StatementOption serviceOption;
+
+    /// <summary>
+    /// 根据具体业务需求生成sql语句
+    /// </summary>
+    protected StatementService currentService
+    {
+      get
+      {
+        StatementService service = this.serviceOption.servicesPool[this.serviceOption.CurrentServiceKey];
+        service.UseMethod(this.serviceOption.ServiceMethod);
+        return service;
+      }
+    }
+
+
+
+
     /// <summary>
     /// 连接字符串
     /// </summary>
@@ -28,35 +64,144 @@ namespace AyaEntity.Base
 
 
     /// <summary>
-    /// 
+    /// sql连接类构造函数。
+    /// 参数：连接字符串，默认sql语句生成器
     /// </summary>
     /// <param name="conn"></param>
 
-    public SqlManager(string conn)
+    public SqlManager(string conn, StatementService defaultService = null)
     {
-      ConnectionString = conn;
+      this.ConnectionString = conn;
+      this.Connection = new MySqlConnection(conn);
+      if (defaultService == null)
+      {
+        defaultService = new BaseStatementService();
+      }
+      this.serviceOption.CurrentServiceKey = "default";
+      this.serviceOption.servicesPool.Add("default", defaultService);
     }
 
+
+    /// <summary>
+    /// 添加sql service处理生成器
+    /// </summary>
+    /// <param name="key"></param>
+    /// <param name="service"></param>
+    /// <returns></returns>
+    public SqlManager AddService(string key, StatementService service)
+    {
+      // 参数不允许null
+      if (service == null)
+      {
+        throw new ArgumentNullException("service");
+      }
+      this.serviceOption.servicesPool.Add(key, service);
+      return this;
+    }
+
+    /// <summary>
+    /// 设置使用sql语句构造器，用以在运行时动态的生成不同类型的sql
+    /// </summary>
+    /// <param name="service"></param>
+    /// <returns></returns>
+    public SqlManager UseService(Action<StatementOption> action)
+    {
+      action(this.serviceOption);
+      return this;
+    }
 
 
 
     /// <summary>
     /// 获取一个实体
     /// </summary>
-    /// <typeparam name="T">实体类</typeparam>
+    /// <typeparam name="TResult">实体类</typeparam>
     /// <param name="sql"></param>
     /// <returns></returns>
-    public T Get<T>(SelectStatement sql = null)
+    public TOutput Get<TOutput>(object parameters = null)
     {
-      if (sql == null)
-      {
-        sql = new SelectStatement()
-                  .Select("top 1 *")
-                  .From(sql.SqlAttribute().GetTableName(typeof(T)));
-      }
-      return Connection.QueryFirst<T>(sql.Build(), sql.SqlParameters());
+      Type type = typeof(TOutput);
+      ISqlStatement sql = this.currentService
+                              .Config("Get",type,parameters);
+      return this.Connection.QueryFirst<TOutput>(sql.ToSql(), parameters);
     }
 
+    /// <summary>
+    /// 获取一个列表
+    /// </summary>
+    /// <typeparam name="TOutput"></typeparam>
+    /// <returns></returns>
+    public IEnumerable<TOutput> GetList<TOutput>(object parameters = null)
+    {
+      Type type = typeof(TOutput);
+      ISqlStatement sql = this.currentService
+                              .Config("GetList",type,parameters);
+      return this.Connection.Query<TOutput>(sql.ToSql(), parameters);
+    }
+
+
+    /// <summary>
+    /// 根据table泛型删除数据
+    /// </summary>
+    /// <typeparam name="TableEntity"></typeparam>
+    /// <param name="parameters"></param>
+    /// <returns></returns>
+
+    public int Delete<TableEntity>(object parameters)
+    {
+      Type type = typeof(TableEntity);
+      ISqlStatement sql = this.currentService
+                              .Config("Delete",type,parameters);
+      return this.Connection.Execute(sql.ToSql(), parameters);
+
+    }
+
+    /// <summary>
+    /// 根据table泛型更新数据
+    /// </summary>
+    /// <typeparam name="TableEntity"></typeparam>
+    /// <param name="parameters"></param>
+    /// <returns></returns>
+    public int Update<TableEntity>(TableEntity updateEntity, object caluseParameters)
+    {
+      Type type = typeof(TableEntity);
+      ISqlStatement sql = this.currentService
+                              .Config("Update",type,caluseParameters,updateEntity);
+      return this.Connection.Execute(sql.ToSql(), this.currentService.GetParameters());
+    }
+
+
+    /// <summary>
+    /// 根据泛型插入一条实体数据
+    /// </summary>
+    /// <typeparam name="TableEntity"></typeparam>
+    /// <param name="parameters"></param>
+    /// <returns></returns>
+    public int Insert<TableEntity>(TableEntity parameters)
+    {
+      Type type = typeof(TableEntity);
+      ISqlStatement sql = this.currentService
+                              .Config("Insert",type,parameters);
+      return this.Connection.Execute(sql.ToSql(), parameters);
+    }
+
+
+
+
+
+    /// <summary>
+    /// 根据泛型插入多条实体数据
+    /// </summary>
+    /// <typeparam name="TableEntity"></typeparam>
+    /// <param name="parameters"></param>
+    /// <returns></returns>
+    public int InsertList<TableEntity>(IEnumerable<TableEntity> parameters)
+    {
+      Type type = typeof(TableEntity);
+      ISqlStatement sql = this.currentService
+                              .Config("InsertList",type,parameters);
+      return this.Connection.Execute(sql.ToSql(), parameters);
+    }
 
 
 

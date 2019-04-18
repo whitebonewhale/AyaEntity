@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace AyaEntity
+namespace AyaEntity.DataUtils
 {
   /// <summary>
   /// 数组join字符串扩展工具类
