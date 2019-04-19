@@ -90,7 +90,13 @@ namespace AyaEntity.SqlServices
 
     private ISqlStatementToSql Delete(object conditionParam)
     {
-      throw new NotImplementedException();
+      if (this.deleteSql == null)
+      {
+        this.deleteSql = new DeleteStatement();
+      }
+      this.deleteSql.From(SqlAttribute.GetTableName(this.entityType))
+                    .Where(conditionParam);
+      return this.deleteSql;
     }
 
     private ISqlStatementToSql Insert(object conditionParam)
