@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AyaEntity.SqlStatement
+namespace AyaEntity.DataUtils
 {
 
   public enum SqlOperate
@@ -14,6 +14,8 @@ namespace AyaEntity.SqlStatement
     Select,
     Delete
   }
+
+
   public enum SortType
   {
     asc,

@@ -67,7 +67,7 @@ class ArticleSqlService : StatementService
 
 
 
-  protected override ISqlStatement CreateSql(string funcName)
+  protected override ISqlStatement CreateSql(string funcName,object caluseParameters,object updateEntity)
   {
     SelectStatement sql = new SelectStatement();
     switch (funcName)
@@ -76,8 +76,7 @@ class ArticleSqlService : StatementService
       default:
         sql = this.methodName.Equals("LikeName")
           ? this.LikeName()
-          : new SelectStatement().From(SqlAttribute.GetTableName(this.entityType)).WhereAutoCaluse(this.caluseParam);
-
+          : new SelectStatement().From(SqlAttribute.GetTableName(this.entityType)).WhereAutoCaluse(caluseParameters);
         break;
     }
     return sql;

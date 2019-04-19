@@ -10,44 +10,10 @@ namespace AyaEntity.SqlServices
 {
 
 
-  /**
-   * 
-   * 
-   * 
-   * 
-   **/
-
 
   public abstract class StatementService
   {
 
-
-    /// <summary>
-    /// 更新sql比较特殊，会用到两个参数
-    /// update set param 与where caluse  param
-    /// </summary>
-    protected object updateParam;
-
-
-    /// <summary>
-    /// sql语句参数实体类
-    /// insert entity param
-    /// delete where caluse param
-    /// select where caluse param
-    /// </summary>
-    protected object caluseParam;
-
-
-    public DynamicParameters GetParameters()
-    {
-      DynamicParameters parameters = new DynamicParameters(this.caluseParam);
-
-      if (this.updateParam != null)
-      {
-        parameters.AddDynamicParams(this.updateParam);
-      }
-      return null;
-    }
 
 
 
@@ -55,6 +21,8 @@ namespace AyaEntity.SqlServices
     /// sql语句操作的表实体类类型
     /// </summary>
     protected Type entityType;
+
+
 
 
 
@@ -66,22 +34,16 @@ namespace AyaEntity.SqlServices
     protected string methodName;
 
 
-    protected SelectStatement selectSql;
-    protected UpdateStatement updateSql;
-
-
     /// <summary>
     /// 配置一下(●'◡'●)就能生成想要的sql啦
     /// </summary>
     /// <param name="funcName">方法名</param>
     /// <param name="type">sql结果，实体类型</param>
-    /// <param name="parameters">sql 参数</param>
+    /// <param name="caluseParameters">sql 参数</param>
     /// <returns></returns>
-    public ISqlStatement Config(string funcName, Type type, object parameters, object updateEntity = null)
+    public ISqlStatement Config(string funcName, Type type, object caluseParameters, object updateEntity = null)
     {
-      this.caluseParam = parameters;
-      this.updateParam = updateEntity;
-      ISqlStatement sql = this.CreateSql(funcName);
+      ISqlStatement sql = this.CreateSql(funcName, caluseParameters,  updateEntity);
       this.entityType = type;
       return sql;
     }
@@ -95,47 +57,15 @@ namespace AyaEntity.SqlServices
       this.methodName = methodName;
     }
 
-
-
-
     /// <summary>
-    /// 生成默认select sql方法 
-    /// </summary>
-    /// <returns></returns>
-    protected SelectStatement Select()
-    {
-      if (this.selectSql == null)
-      {
-        this.selectSql = new SelectStatement()
-              .From(SqlAttribute.GetTableName(this.entityType))
-              .WhereAutoCaluse(this.caluseParam);
-      }
-      return this.selectSql;
-    }
-
-    /// <summary>
-    /// 生成默认update sql方法
-    /// </summary>
-    /// <returns></returns>
-    protected UpdateStatement Update()
-
-    {
-      if (this.updateSql == null)
-      {
-        this.updateSql = new UpdateStatement()
-              .Update(SqlAttribute.GetTableName(this.entityType))
-              .Set(SqlAttribute.GetUpdateColumns(this.updateParam))
-              .WhereAutoCaluse(this.caluseParam);
-      }
-      return this.updateSql;
-    }
-
-    /// <summary>
-    /// 生成sql语句
+    /// 子类重写具体逻辑，生成sql语句
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    protected abstract ISqlStatement CreateSql(string funcName);
+    protected abstract ISqlStatement CreateSql(string funcName, object caluseParameters, object updateEntity);
+
+   
+
 
   }
 

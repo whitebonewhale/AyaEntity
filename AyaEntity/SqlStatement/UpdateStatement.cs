@@ -1,4 +1,5 @@
 ﻿using AyaEntity.DataUtils;
+using AyaEntity.SqlServices;
 using Dapper;
 using System;
 using System.Collections.Generic;
@@ -19,8 +20,10 @@ namespace AyaEntity.SqlStatement
 
     private string[] columns;
     private string tableName;
-    private string whereCaluseString ;
+    private string[] caluseFields;
 
+    protected object setEntity;
+    protected object caluseParam;
 
     /// <summary>
     /// 生成sql
@@ -29,18 +32,42 @@ namespace AyaEntity.SqlStatement
     public string ToSql()
     {
       StringBuilder buffer = new StringBuilder();
+
       // from
       buffer.Append("UPDATE FROM ").Append(this.tableName);
       // set fields
-      buffer.Append(" SET ").Append(this.columns.Join(",", m => m + "=@" + m));
+      buffer.Append(" SET ").Append(this.columns.Join(",", m => m + "=@param_" + m));
       // where
-      if (!string.IsNullOrEmpty(this.whereCaluseString))
+      if (this.caluseFields != null && this.caluseFields.Length > 0)
       {
-        buffer.Append(" WHERE ").Append(this.whereCaluseString);
+        buffer.Append(" WHERE ").Append(this.caluseFields.Join($" {this.caluseOpertor.ToString()} ", m => m + "=@cparam_" + m));
       }
       return buffer.ToString();
     }
 
+    public DynamicParameters GetParameters()
+    {
+      DynamicParameters parameters = new DynamicParameters();
+      PropertyInfo[] properties = this.setEntity.GetType().GetProperties();
+      // 添加setEntity参数
+      foreach (PropertyInfo property in properties)
+      {
+        parameters.Add("@param_" + property.Name, property.GetValue(this.setEntity));
+      }
+
+      if (this.caluseParam != null)
+      {
+
+        properties = this.caluseParam.GetType().GetProperties();
+        // 添加setEntity参数
+        foreach (PropertyInfo property in properties)
+        {
+          parameters.Add("@cparam_" + property.Name, property.GetValue(this.caluseParam));
+        }
+      }
+
+      return parameters;
+    }
 
 
 
@@ -50,9 +77,10 @@ namespace AyaEntity.SqlStatement
       return this;
     }
 
-    public UpdateStatement Set(params string[] columns)
+    public UpdateStatement Set(object setEntity)
     {
-      this.columns = columns;
+      this.columns = SqlAttribute.GetUpdateColumns(setEntity);
+      this.setEntity = setEntity;
       return this;
     }
 
@@ -62,9 +90,10 @@ namespace AyaEntity.SqlStatement
     /// <param name="caluse"></param>
     /// <param name="parameters"></param>
     /// <returns></returns>
-    public UpdateStatement Where(params string[] whereCaluse)
+    public UpdateStatement Where(object caluseParam, params string[] whereCaluse)
     {
-      this.whereCaluseString = whereCaluse.Join($" {this.caluseOpertor.ToString()} ", m => m);
+      this.caluseParam = caluseParam;
+      this.caluseFields = whereCaluse;
       return this;
     }
 
@@ -78,12 +107,11 @@ namespace AyaEntity.SqlStatement
     {
       if (sqlParam != null)
       {
-        this.whereCaluseString = SqlAttribute.GetCaluse(sqlParam, this.caluseOpertor.ToString());
+        this.caluseParam = sqlParam;
+        this.caluseFields = SqlAttribute.GetWhereCaluse(sqlParam);
       }
       return this;
     }
-
-
 
   }
 

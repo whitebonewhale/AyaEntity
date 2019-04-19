@@ -123,7 +123,7 @@ namespace AyaEntity.Base
       Type type = typeof(TOutput);
       ISqlStatement sql = this.currentService
                               .Config("Get",type,parameters);
-      return this.Connection.QueryFirst<TOutput>(sql.ToSql(), parameters);
+      return this.Connection.QueryFirst<TOutput>(sql.ToSql(), sql.GetParameters());
     }
 
     /// <summary>
@@ -136,7 +136,7 @@ namespace AyaEntity.Base
       Type type = typeof(TOutput);
       ISqlStatement sql = this.currentService
                               .Config("GetList",type,parameters);
-      return this.Connection.Query<TOutput>(sql.ToSql(), parameters);
+      return this.Connection.Query<TOutput>(sql.ToSql(), sql.GetParameters());
     }
 
 
@@ -152,7 +152,7 @@ namespace AyaEntity.Base
       Type type = typeof(TableEntity);
       ISqlStatement sql = this.currentService
                               .Config("Delete",type,parameters);
-      return this.Connection.Execute(sql.ToSql(), parameters);
+      return this.Connection.Execute(sql.ToSql(), sql.GetParameters());
 
     }
 
@@ -167,7 +167,7 @@ namespace AyaEntity.Base
       Type type = typeof(TableEntity);
       ISqlStatement sql = this.currentService
                               .Config("Update",type,caluseParameters,updateEntity);
-      return this.Connection.Execute(sql.ToSql(), this.currentService.GetParameters());
+      return this.Connection.Execute(sql.ToSql(), sql.GetParameters());
     }
 
 
@@ -182,7 +182,7 @@ namespace AyaEntity.Base
       Type type = typeof(TableEntity);
       ISqlStatement sql = this.currentService
                               .Config("Insert",type,parameters);
-      return this.Connection.Execute(sql.ToSql(), parameters);
+      return this.Connection.Execute(sql.ToSql(), sql.GetParameters());
     }
 
 
@@ -200,7 +200,7 @@ namespace AyaEntity.Base
       Type type = typeof(TableEntity);
       ISqlStatement sql = this.currentService
                               .Config("InsertList",type,parameters);
-      return this.Connection.Execute(sql.ToSql(), parameters);
+      return this.Connection.Execute(sql.ToSql(), sql.GetParameters());
     }
 
 

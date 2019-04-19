@@ -35,28 +35,26 @@ namespace AyaEntity.DataUtils
     }
 
 
+
+
     /// <summary>
     /// 根据参数与特性获取sql条件从句
     /// </summary>
     /// <param name="entity"></param>
     /// <param name="parameters"></param>
     /// <returns></returns>
-    public static string GetCaluse<T>(T entity, string opertor)
+    public static string[] GetWhereCaluse(object sqlParam)
     {
-      PropertyInfo[] fields = typeof(T).GetProperties();
-      return fields.Join(" " + opertor + " ", m =>
-          {
-            if ((typeof(IEnumerable<object>).IsAssignableFrom(m.PropertyType)))
-            {
-              return m.Name + " in @" + m.Name;
-            }
-            else
-            {
-              return m.Name + "=@" + m.Name;
-            }
-          });
+      PropertyInfo[] fields = sqlParam.GetType().GetProperties();
+      return Array.ConvertAll(fields, mbox => mbox.Name);
     }
 
+
+    /// <summary>
+    /// 更新
+    /// </summary>
+    /// <param name="updateParam"></param>
+    /// <returns></returns>
     public static string[] GetUpdateColumns(object updateParam)
     {
       return Array.ConvertAll(updateParam.GetType().GetProperties(), mbox => mbox.Name);
