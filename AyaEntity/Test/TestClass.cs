@@ -2,13 +2,22 @@
 using AyaEntity.DataUtils;
 using AyaEntity.SqlServices;
 using AyaEntity.SqlStatement;
+using System;
 
 [TableName("blog_article")]
 class Article
 {
+
+  [PrimaryColumn("id")]
+  public string Id { get; set; }
+
+  [ColumnName("article_name")]
   public string Name { get; set; }
+
+  [ColumnName("article_title")]
+  public string Title { get; set; }
 }
-///  
+
 class TestClass
 {
   private SqlManager manage;
@@ -46,16 +55,21 @@ class TestClass
 
 
     // 切换回default service sql生成器；
-    this.manage
-          .UseService(opt => opt.CurrentServiceKey = "default")
-          .Get<Article>();
+    this.manage.UseService(opt => opt.CurrentServiceKey = "default")
+                .Get<Article>();
 
 
     // 再切换回articleservice 
-    this.manage
-          .UseService(opt => opt.CurrentServiceKey = "ArticleService")
-          .Get<Article>();
+    this.manage.UseService(opt => opt.CurrentServiceKey = "ArticleService")
+                .Get<Article>();
 
+    // 执行update，新增评论（文章评论数量自增+1）
+    this.manage.UseService(opt => opt.ServiceMethod = "NewCommit")
+                .Update<Article>(new { articleId = "123" });
+
+    // 执行update，更改文章头部信息
+    this.manage.UseService(opt => opt.ServiceMethod = "UpdateHead")
+                 .Update<Article>(new Article { Name = "我要改名字", Title = "我要改标题", Id = "我是主键，where我" });
 
   }
 
@@ -66,29 +80,53 @@ class ArticleSqlService : StatementService
 {
 
 
+  /// <summary>
+  /// 优化：只生成一次
+  /// </summary>
+  private SelectStatement selectSql = new SelectStatement();
+  private UpdateStatement updateSql = new UpdateStatement();
+  private DeleteStatement deleteSql;
+  private InsertStatement insertSql;
 
-  protected override ISqlStatement CreateSql(string funcName,object caluseParameters,object updateEntity)
+
+  protected override ISqlStatementToSql CreateSql(string funcName, object conditionParameters)
   {
-    SelectStatement sql = new SelectStatement();
-    switch (funcName)
+    string flag = funcName + ":" + this.methodName;
+    switch (flag)
     {
-      case "Get":
+      case "Get:LikeName":
+        return this.LikeName();
+      case "Update:NewCommit":
+        return this.NewCommit(conditionParameters);
+      // 根据主键，更新文章头部信息（文章名字，文章标题）
+      case "Update:UpdateHead":
+        return this.updateSql.Update(conditionParameters)
+                              .Set("article_name=@Name", "article_title=@Title")
+                              .Where(SqlAttribute.GetPrimaryColumn(this.entityType));
       default:
-        sql = this.methodName.Equals("LikeName")
-          ? this.LikeName()
-          : new SelectStatement().From(SqlAttribute.GetTableName(this.entityType)).WhereAutoCaluse(caluseParameters);
-        break;
+        throw new NotImplementedException("未实现方法：" + flag);
     }
-    return sql;
+  }
+
+  /// <summary>
+  /// 文章有了新评论，评论数自增+1
+  /// </summary>
+  /// <returns></returns>
+  private SqlStatement NewCommit(object param)
+  {
+    return this.updateSql.Update(param).Set("commit_count+=1").Where("article_id=@articleId");
   }
 
 
-  private SelectStatement LikeName()
+  /// <summary>
+  /// 模糊名字查询
+  /// </summary>
+  /// <returns></returns>
+  private SqlStatement LikeName()
   {
-    return new SelectStatement()
+    return this.selectSql
                 .Select("top 1 *")
-                .From(SqlAttribute.GetTableName(this.entityType))
-                .Where("name like '%'+@name+'%'");
+                .From(SqlAttribute.GetTableName(this.entityType));
   }
 
 

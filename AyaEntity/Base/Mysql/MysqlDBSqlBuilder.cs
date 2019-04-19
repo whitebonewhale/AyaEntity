@@ -16,13 +16,13 @@
 //      IEnumerable<string> fields = Parameters.ParameterNames;
 //      this.Select()
 //      StringBuilder sqlmem = new StringBuilder("select " + pag.Columns + " from " + pag.TableName);
-//      sqlmem.Append(pag.Caluse);
+//      sqlmem.Append(pag.Condition);
 //      sqlmem.Append(" Order by ").Append(pag.OrderField).Append(" ").Append(pag.OrderType);
 //      sqlmem.Append(" limit @StartRow,@RowSize;");
 //      // 查询总条数
 //      if (pag.RequiredTotal)
 //      {
-//        sqlmem.Append("SELECT count(*) from ").Append(pag.TableName).Append(pag.Caluse);
+//        sqlmem.Append("SELECT count(*) from ").Append(pag.TableName).Append(pag.Condition);
 //      }
 //      return sqlmem.ToString();
 //    }

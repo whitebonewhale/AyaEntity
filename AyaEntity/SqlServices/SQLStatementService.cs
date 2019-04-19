@@ -39,11 +39,11 @@ namespace AyaEntity.SqlServices
     /// </summary>
     /// <param name="funcName">方法名</param>
     /// <param name="type">sql结果，实体类型</param>
-    /// <param name="caluseParameters">sql 参数</param>
+    /// <param name="conditionParameters">sql 参数</param>
     /// <returns></returns>
-    public ISqlStatement Config(string funcName, Type type, object caluseParameters, object updateEntity = null)
+    public ISqlStatementToSql Config(string funcName, Type type, object conditionParameters)
     {
-      ISqlStatement sql = this.CreateSql(funcName, caluseParameters,  updateEntity);
+      ISqlStatementToSql sql = this.CreateSql(funcName, conditionParameters);
       this.entityType = type;
       return sql;
     }
@@ -62,9 +62,9 @@ namespace AyaEntity.SqlServices
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    protected abstract ISqlStatement CreateSql(string funcName, object caluseParameters, object updateEntity);
+    protected abstract ISqlStatementToSql CreateSql(string funcName, object conditionParameters);
 
-   
+
 
 
   }

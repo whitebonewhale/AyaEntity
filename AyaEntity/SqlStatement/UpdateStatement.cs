@@ -10,109 +10,60 @@ namespace AyaEntity.SqlStatement
 {
 
   /// <summary>
-  /// select sql语句生成,实现其他select复杂语句可继承此类扩展重写即可
+  /// update sql语句生成,实现其他update复杂语句可继承此类扩展重写即可
   /// </summary>
-  public class UpdateStatement : ISqlStatement
+  public class UpdateStatement : SqlStatement
   {
-    // where语句连接运算符: and/or
-    public CaluseOpertor caluseOpertor = CaluseOpertor.and;
 
-
-    private string[] columns;
-    private string tableName;
-    private string[] caluseFields;
-
-    protected object setEntity;
-    protected object caluseParam;
 
     /// <summary>
     /// 生成sql
     /// </summary>
     /// <returns></returns>
-    public string ToSql()
+    public override string ToSql()
     {
       StringBuilder buffer = new StringBuilder();
 
       // from
       buffer.Append("UPDATE FROM ").Append(this.tableName);
       // set fields
-      buffer.Append(" SET ").Append(this.columns.Join(",", m => m + "=@param_" + m));
+      buffer.Append(" SET ").Append(this.columns.Join(",", m => m));
       // where
-      if (this.caluseFields != null && this.caluseFields.Length > 0)
+      if (string.IsNullOrEmpty(this.getWhereCondition))
       {
-        buffer.Append(" WHERE ").Append(this.caluseFields.Join($" {this.caluseOpertor.ToString()} ", m => m + "=@cparam_" + m));
+        buffer.Append(" WHERE ").Append(this.getWhereCondition);
       }
       return buffer.ToString();
     }
 
-    public DynamicParameters GetParameters()
-    {
-      DynamicParameters parameters = new DynamicParameters();
-      PropertyInfo[] properties = this.setEntity.GetType().GetProperties();
-      // 添加setEntity参数
-      foreach (PropertyInfo property in properties)
-      {
-        parameters.Add("@param_" + property.Name, property.GetValue(this.setEntity));
-      }
-
-      if (this.caluseParam != null)
-      {
-
-        properties = this.caluseParam.GetType().GetProperties();
-        // 添加setEntity参数
-        foreach (PropertyInfo property in properties)
-        {
-          parameters.Add("@cparam_" + property.Name, property.GetValue(this.caluseParam));
-        }
-      }
-
-      return parameters;
-    }
-
-
-
-    public UpdateStatement Update(string tableName)
-    {
-      this.tableName = tableName;
-      return this;
-    }
-
-    public UpdateStatement Set(object setEntity)
-    {
-      this.columns = SqlAttribute.GetUpdateColumns(setEntity);
-      this.setEntity = setEntity;
-      return this;
-    }
 
     /// <summary>
-    /// 自定义where子句
+    /// 获取sql参数，参数key特殊前缀处理
     /// </summary>
-    /// <param name="caluse"></param>
-    /// <param name="parameters"></param>
     /// <returns></returns>
-    public UpdateStatement Where(object caluseParam, params string[] whereCaluse)
+    public override object GetParameters()
     {
-      this.caluseParam = caluseParam;
-      this.caluseFields = whereCaluse;
+      return this.conditionParam;
+    }
+
+
+    public UpdateStatement Update(object sqlParam)
+    {
       return this;
     }
 
 
-    /// <summary>
-    /// 根据参数自动生成默认caluse语句
-    /// </summary>
-    /// <param name="parameters"></param>
-    /// <returns></returns>
-    public UpdateStatement WhereAutoCaluse(object sqlParam)
+    public UpdateStatement Set(params string[] setColumns)
     {
-      if (sqlParam != null)
-      {
-        this.caluseParam = sqlParam;
-        this.caluseFields = SqlAttribute.GetWhereCaluse(sqlParam);
-      }
+      this.columns = setColumns;
       return this;
     }
 
+
+    public UpdateStatement WherePrimaryKey(string primaryKey)
+    {
+      this.whereCondition = primaryKey + "=@" + primaryKey;
+      return this;
+    }
   }
-
 }

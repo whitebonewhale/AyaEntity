@@ -18,14 +18,14 @@ namespace AyaEntity.DataUtils
 
   public enum SortType
   {
-    asc,
-    desc
+    ASC,
+    DESC
   }
 
-  public enum CaluseOpertor
+  public enum ConditionOpertor
   {
-    and,
-    or
+    AND,
+    OR,
   }
 
 
@@ -39,20 +39,47 @@ namespace AyaEntity.DataUtils
   }
 
 
-  public class NotMappedAttribute : Attribute
+  /// <summary>
+  /// 主键列特性标识
+  /// </summary>
+  [AttributeUsage(AttributeTargets.Property)]
+  public class PrimaryColumnAttribute : Attribute
   {
+    public string ColumnName { get; set; }
+    public PrimaryColumnAttribute(string name)
+    {
+      this.ColumnName = name;
+    }
 
   }
 
-  public class KeyAttribute : Attribute
-  {
 
+  /// <summary>
+  /// 列名
+  /// </summary>
+  [AttributeUsage(AttributeTargets.Property)]
+  public class ColumnNameAttribute : Attribute
+  {
+    public string ColumnName { get; set; }
+    public ColumnNameAttribute(string name)
+    {
+      this.ColumnName = name;
+    }
   }
 
+
+
+  /// <summary>
+  /// 自增主键
+  /// </summary>
+  [AttributeUsage(AttributeTargets.Property)]
   public class IdentityKeyAttribute : Attribute
   {
 
   }
+
+
+  [AttributeUsage(AttributeTargets.Class)]
 
   public class TableNameAttribute : Attribute
   {

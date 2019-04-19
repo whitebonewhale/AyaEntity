@@ -12,52 +12,48 @@ namespace AyaEntity.SqlStatement
   /// <summary>
   /// select sql语句生成,实现其他select复杂语句可继承此类扩展重写即可
   /// </summary>
-  public class InsertStatement : ISqlStatement
+  public class InsertStatement : SqlStatement
   {
-    // where语句连接运算符: and/or
-    public CaluseOpertor caluseOpertor = CaluseOpertor.and;
 
+    Dictionary<string,string> insertColumns;
 
-    private string[] columns;
-    private string tableName;
-    private string[] caluseFields ;
 
 
     /// <summary>
     /// 生成sql
     /// </summary>
     /// <returns></returns>
-    public string ToSql()
+    public override string ToSql()
     {
       StringBuilder buffer = new StringBuilder();
-
       // from
       buffer.Append("INSERT INTO ").Append(this.tableName);
+
       // set fields
-      buffer.Append("(").Append(this.columns.Join(",", m => m)).Append(")");
-      buffer.Append(" VALUSE(").Append(this.columns.Join(",", m => "@" + m)).Append(")");
+      buffer.Append("(").Append(this.insertColumns.Keys.Join(",", m => m)).Append(")");
+      buffer.Append(" VALUSE(").Append(this.insertColumns.Values.Join(",", m => "@" + m)).Append(")");
       return buffer.ToString();
     }
 
 
 
 
-    public InsertStatement From(string tableName)
+    //git @github.com:whitebonewhale/AyaEntity.git
+    public InsertStatement Insert(Dictionary<string, string> insertColumns, object sqlParam)
     {
-      this.tableName = tableName;
+      this.conditionParam = sqlParam;
+      this.insertColumns = insertColumns;
       return this;
     }
 
-    public InsertStatement Valuse(params string[] columns)
+
+
+
+    public override object GetParameters()
     {
-      this.columns = columns;
-      return this;
+      return this.conditionParam;
     }
 
-    public DynamicParameters GetParameters()
-    {
-      throw new NotImplementedException();
-    }
   }
 
 }

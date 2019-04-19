@@ -72,7 +72,7 @@ namespace AyaEntity
     /// <summary>
     /// sql查询where条件语句
     /// </summary>
-    public string Caluse
+    public string Condition
     {
       get;
       set;

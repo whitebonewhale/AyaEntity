@@ -18,34 +18,34 @@ namespace AyaEntity.SqlServices
     private InsertStatement insertSql;
 
 
-    protected override ISqlStatement CreateSql(string funcName, object caluseParameters, object updateEntity)
+    protected override ISqlStatementToSql CreateSql(string funcName, object conditionParameters)
     {
-      ISqlStatement sql = null;
+      ISqlStatementToSql sql = null;
       //typeof(SqlManager).GetMethod(funcName).GetCustomAttributes(typeof(StatementOperateAttribute), false)
       switch (funcName)
       {
         case "Get":
-          sql = this.Select(caluseParameters).Select("top 1 *");
+          sql = this.Select(conditionParameters).Select("top 1 *");
           break;
         case "GetList":
-          sql = this.Select(caluseParameters).Select("*");
+          sql = this.Select(conditionParameters).Select("*");
           break;
 
         case "Update":
-          sql = this.Update(caluseParameters, updateEntity);
+          sql = this.Update(conditionParameters);
           break;
         case "Delete":
-          sql = this.Delete(caluseParameters);
+          sql = this.Delete(conditionParameters);
           break;
 
         case "Insert":
-          sql = this.Insert(caluseParameters);
+          sql = this.Insert(conditionParameters);
           break;
         case "InsertList":
-          sql = this.Insert(caluseParameters);
+          sql = this.Insert(conditionParameters);
           break;
         default:
-          throw new NotImplementedException("service类未实现CreateSql case: " + funcName);
+          throw new NotImplementedException("service类未实现SqlManage方法 case: " + funcName);
       }
       return sql;
     }
@@ -58,14 +58,14 @@ namespace AyaEntity.SqlServices
     /// 生成默认select sql方法 
     /// </summary>
     /// <returns></returns>
-    private SelectStatement Select(object caluseParam)
+    private SelectStatement Select(object conditionParam)
     {
       if (this.selectSql == null)
       {
         this.selectSql = new SelectStatement();
       }
       this.selectSql.From(SqlAttribute.GetTableName(this.entityType))
-                    .WhereAutoCaluse(caluseParam);
+                    .Where(conditionParam);
       return this.selectSql;
     }
 
@@ -73,27 +73,35 @@ namespace AyaEntity.SqlServices
     /// 生成默认update sql方法
     /// </summary>
     /// <returns></returns>
-    private UpdateStatement Update(object caluseParameters, object updateEntity)
+    private UpdateStatement Update(object conditionParameters)
     {
       if (this.updateSql == null)
       {
         this.updateSql = new UpdateStatement();
       }
-      this.updateSql.Update(SqlAttribute.GetTableName(this.entityType))
-                    .Set(updateEntity)
-                    .WhereAutoCaluse(caluseParameters);
+
+      this.updateSql.Update(conditionParameters)
+                    .Set(SqlAttribute.GetUpdateColumns(this.entityType, out string primaryKey).ToArray())
+                    .WherePrimaryKey(primaryKey)
+                    .From(SqlAttribute.GetTableName(this.entityType));
       return this.updateSql;
     }
 
 
-    private ISqlStatement Delete(object caluseParam)
+    private ISqlStatementToSql Delete(object conditionParam)
     {
       throw new NotImplementedException();
     }
 
-    private ISqlStatement Insert(object caluseParam)
+    private ISqlStatementToSql Insert(object conditionParam)
     {
-      throw new NotImplementedException();
+
+      if (this.insertSql == null)
+      {
+        this.insertSql = new InsertStatement();
+      }
+      return this.insertSql.Insert(SqlAttribute.GetInsertCoulmn(this.entityType), conditionParam)
+                    .From(SqlAttribute.GetTableName(this.entityType));
     }
 
     #endregion

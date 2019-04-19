@@ -19,7 +19,7 @@
 
 
 
-//    public PagingResult<T> PagingQuery<T>(PagingParameter pag, string caluse)
+//    public PagingResult<T> PagingQuery<T>(PagingParameter pag, string condition)
 //    {
 //      IEnumerable<string> fields = pag.Parameters.ParameterNames;
 //      if (pag.TableName == null)

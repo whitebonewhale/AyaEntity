@@ -26,38 +26,109 @@ namespace AyaEntity.DataUtils
 
 
     /// <summary>
-    /// 获取实体所有列（公开属性）
+    /// 获取实体所有列名（公开属性）
     /// </summary>
     /// <returns></returns>
     public static string[] GetColumns(Type entity)
     {
-      return Array.ConvertAll(entity.GetProperties(), mbox => mbox.Name);
+      return Array.ConvertAll(entity.GetProperties(), mbox =>
+      {
+        ColumnNameAttribute column = mbox.GetCustomAttribute<ColumnNameAttribute>();
+        if (column != null)
+        {
+          return column.ColumnName;
+        }
+        else
+        {
+          return mbox.Name;
+        }
+      });
+    }
+
+
+    public static string GetWhereCondition(object conditionParam, ConditionOpertor conditionOpertor)
+    {
+      PropertyInfo[] fields = conditionParam.GetType().GetProperties();
+      return fields.Join(" " + conditionOpertor.ToString() + " ", m =>
+      {
+        if ((typeof(IEnumerable<object>).IsAssignableFrom(m.PropertyType)))
+        {
+          return m.Name + " in @" + m.Name;
+        }
+        else
+        {
+          return m.Name + "=@" + m.Name;
+        }
+      });
     }
 
 
 
-
     /// <summary>
-    /// 根据参数与特性获取sql条件从句
+    /// 根据特性获取可更新列(排除主键列），并输出主键列名
     /// </summary>
-    /// <param name="entity"></param>
-    /// <param name="parameters"></param>
+    /// <param name="updateEnity"></param>
     /// <returns></returns>
-    public static string[] GetWhereCaluse(object sqlParam)
+    public static List<string> GetUpdateColumns(Type updateEnity, out string primaryColumn)
     {
-      PropertyInfo[] fields = sqlParam.GetType().GetProperties();
-      return Array.ConvertAll(fields, mbox => mbox.Name);
+      List<string> results = new List<string>();
+      primaryColumn = null;
+      foreach (var mbox in updateEnity.GetProperties())
+      {
+        ColumnNameAttribute column = mbox.GetCustomAttribute<ColumnNameAttribute>();
+        PrimaryColumnAttribute primary = mbox.GetCustomAttribute<PrimaryColumnAttribute>();
+        if (primary != null)
+        {
+          primaryColumn = (string.IsNullOrEmpty(primary.ColumnName)) ? mbox.Name : primary.ColumnName;
+        }
+        else
+        {
+          results.Add((column != null ? column.ColumnName : mbox.Name) + "=@" + mbox.Name);
+        }
+      }
+      return results;
     }
 
 
     /// <summary>
-    /// 更新
+    /// 获取实体类主键列名
     /// </summary>
-    /// <param name="updateParam"></param>
+    /// <param name="entityType"></param>
     /// <returns></returns>
-    public static string[] GetUpdateColumns(object updateParam)
+    public static string GetPrimaryColumn(Type entityType)
     {
-      return Array.ConvertAll(updateParam.GetType().GetProperties(), mbox => mbox.Name);
+      List<string> results = new List<string>();
+      foreach (var mbox in entityType.GetProperties())
+      {
+        PrimaryColumnAttribute m = mbox.GetCustomAttribute<PrimaryColumnAttribute>();
+        if (m != null)
+        {
+          return (string.IsNullOrEmpty(m.ColumnName)) ? mbox.Name : m.ColumnName;
+        }
+      }
+      throw new InvalidOperationException("获取主键列错误，必须指定一个属性为主键，请为实体类“" + entityType.FullName + "”添加主键特性列");
+    }
+
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="entityType"></param>
+    /// <param name="valuesColumn"></param>
+    /// <returns></returns>
+    public static Dictionary<string, string> GetInsertCoulmn(Type entityType)
+    {
+
+      Dictionary<string,string>  results = new Dictionary<string,string> ();
+      foreach (var mbox in entityType.GetProperties())
+      {
+        PrimaryColumnAttribute m = mbox.GetCustomAttribute<PrimaryColumnAttribute>();
+        if (m != null)
+        {
+          results.Add(string.IsNullOrEmpty(m.ColumnName) ? mbox.Name : m.ColumnName, mbox.Name);
+        }
+      }
+      return results;
     }
 
     /// <summary>

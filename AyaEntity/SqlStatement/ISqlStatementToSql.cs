@@ -7,14 +7,17 @@ namespace AyaEntity.SqlStatement
 {
 
 
+
+
+
   /// <summary>
   /// sql语句（组装）生成类
   /// </summary>
-  public interface ISqlStatement
+  public interface ISqlStatementToSql
   {
     string ToSql();
 
-    DynamicParameters GetParameters();
+    object GetParameters();
 
   }
 }

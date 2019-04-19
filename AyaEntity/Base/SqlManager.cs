@@ -121,7 +121,7 @@ namespace AyaEntity.Base
     public TOutput Get<TOutput>(object parameters = null)
     {
       Type type = typeof(TOutput);
-      ISqlStatement sql = this.currentService
+      ISqlStatementToSql sql = this.currentService
                               .Config("Get",type,parameters);
       return this.Connection.QueryFirst<TOutput>(sql.ToSql(), sql.GetParameters());
     }
@@ -134,7 +134,7 @@ namespace AyaEntity.Base
     public IEnumerable<TOutput> GetList<TOutput>(object parameters = null)
     {
       Type type = typeof(TOutput);
-      ISqlStatement sql = this.currentService
+      ISqlStatementToSql sql = this.currentService
                               .Config("GetList",type,parameters);
       return this.Connection.Query<TOutput>(sql.ToSql(), sql.GetParameters());
     }
@@ -150,7 +150,7 @@ namespace AyaEntity.Base
     public int Delete<TableEntity>(object parameters)
     {
       Type type = typeof(TableEntity);
-      ISqlStatement sql = this.currentService
+      ISqlStatementToSql sql = this.currentService
                               .Config("Delete",type,parameters);
       return this.Connection.Execute(sql.ToSql(), sql.GetParameters());
 
@@ -160,13 +160,13 @@ namespace AyaEntity.Base
     /// 根据table泛型更新数据
     /// </summary>
     /// <typeparam name="TableEntity"></typeparam>
-    /// <param name="parameters"></param>
+    /// <param name="updateEntity">复合参数（要更新的字段 和 where条件字段 都在这个对象里）</param>
     /// <returns></returns>
-    public int Update<TableEntity>(TableEntity updateEntity, object caluseParameters)
+    public int Update<TableEntity>(object updateEntity)
     {
       Type type = typeof(TableEntity);
-      ISqlStatement sql = this.currentService
-                              .Config("Update",type,caluseParameters,updateEntity);
+      ISqlStatementToSql sql = this.currentService
+                              .Config("Update",type,updateEntity);
       return this.Connection.Execute(sql.ToSql(), sql.GetParameters());
     }
 
@@ -180,7 +180,7 @@ namespace AyaEntity.Base
     public int Insert<TableEntity>(TableEntity parameters)
     {
       Type type = typeof(TableEntity);
-      ISqlStatement sql = this.currentService
+      ISqlStatementToSql sql = this.currentService
                               .Config("Insert",type,parameters);
       return this.Connection.Execute(sql.ToSql(), sql.GetParameters());
     }
@@ -198,7 +198,7 @@ namespace AyaEntity.Base
     public int InsertList<TableEntity>(IEnumerable<TableEntity> parameters)
     {
       Type type = typeof(TableEntity);
-      ISqlStatement sql = this.currentService
+      ISqlStatementToSql sql = this.currentService
                               .Config("InsertList",type,parameters);
       return this.Connection.Execute(sql.ToSql(), sql.GetParameters());
     }
