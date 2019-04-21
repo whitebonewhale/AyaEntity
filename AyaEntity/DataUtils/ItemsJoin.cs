@@ -14,7 +14,7 @@ namespace AyaEntity.DataUtils
 
     public static bool IsEmpty(this Array array)
     {
-      return array == null && array.Length == 0;
+      return array == null || array.Length == 0;
     }
 
     public static string Join<Key, Value>(this Dictionary<Key, Value> item, string separator, Func<KeyValuePair<Key, Value>, string> func)

@@ -10,12 +10,12 @@ namespace AyaEntity.Tests
   [TestClass]
   public class BaseServiceTest
   {
-    //const string server = "rm-bp186ea8zb5yqh132bo.mysql.rds.aliyuncs.com";
-    //const string username = "root";
-    //const string pwd = "Zh25912591";
-    //const string dbName = "entity_test";
+    const string server = "rm-bp186ea8zb5yqh132bo.mysql.rds.aliyuncs.com";
+    const string username = "root";
+    const string pwd = "Zh25912591";
+    const string dbName = "entity_test";
 
-    //private SqlManager manage;
+    private SqlManager manage;
 
 
     public BaseServiceTest()
@@ -39,9 +39,10 @@ namespace AyaEntity.Tests
     [TestMethod]
     public void TestMethod1()
     {
+      this.manage = new SqlManager($"Server={server};Database={dbName}; User={username};Password={pwd};charset=UTF8");
 
-      //SqlManager manage = new SqlManager($"Server={server};Database={dbName}; User={username};Password={pwd};charset=UTF8");
-      Assert.IsFalse(false, "1 should not be prime");
+      Article artile = this.manage.Get<Article>(new Article { Name = "123" });
+      Assert.IsFalse(artile.Name.Equals("123"), "1 should not be prime");
       //// 使用默认的sql语句生成器，简单获取一个model实体
       //// 会生成如下语句
       //// select * from blog_article where name = @name

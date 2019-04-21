@@ -43,8 +43,8 @@ namespace AyaEntity.SqlServices
     /// <returns></returns>
     public ISqlStatementToSql Config(string funcName, Type type, object conditionParameters)
     {
-      ISqlStatementToSql sql = this.CreateSql(funcName, conditionParameters);
       this.entityType = type;
+      ISqlStatementToSql sql = this.CreateSql(funcName, conditionParameters);
       return sql;
     }
 

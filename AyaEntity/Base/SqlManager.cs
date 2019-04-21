@@ -35,6 +35,13 @@ namespace AyaEntity.Base
     /// </summary>
     protected StatementOption serviceOption;
 
+    private string GetSqlString(ISqlStatementToSql sql)
+    {
+      string str =  sql.ToSql();
+      Console.WriteLine(str);
+      return str;
+    }
+
     /// <summary>
     /// 根据具体业务需求生成sql语句
     /// </summary>
@@ -73,6 +80,7 @@ namespace AyaEntity.Base
     {
       this.ConnectionString = conn;
       this.Connection = new MySqlConnection(conn);
+      this.serviceOption.servicesPool = new Dictionary<string, StatementService>();
       if (defaultService == null)
       {
         defaultService = new BaseStatementService();
@@ -123,7 +131,7 @@ namespace AyaEntity.Base
       Type type = typeof(TOutput);
       ISqlStatementToSql sql = this.currentService
                               .Config("Get",type,parameters);
-      return this.Connection.QueryFirst<TOutput>(sql.ToSql(), sql.GetParameters());
+      return this.Connection.QueryFirst<TOutput>(this.GetSqlString(sql), sql.GetParameters());
     }
 
     /// <summary>
@@ -136,7 +144,7 @@ namespace AyaEntity.Base
       Type type = typeof(TOutput);
       ISqlStatementToSql sql = this.currentService
                               .Config("GetList",type,parameters);
-      return this.Connection.Query<TOutput>(sql.ToSql(), sql.GetParameters());
+      return this.Connection.Query<TOutput>(this.GetSqlString(sql), sql.GetParameters());
     }
 
 
@@ -152,7 +160,7 @@ namespace AyaEntity.Base
       Type type = typeof(TableEntity);
       ISqlStatementToSql sql = this.currentService
                               .Config("Delete",type,parameters);
-      return this.Connection.Execute(sql.ToSql(), sql.GetParameters());
+      return this.Connection.Execute(this.GetSqlString(sql), sql.GetParameters());
 
     }
 
@@ -167,7 +175,7 @@ namespace AyaEntity.Base
       Type type = typeof(TableEntity);
       ISqlStatementToSql sql = this.currentService
                               .Config("Update",type,updateEntity);
-      return this.Connection.Execute(sql.ToSql(), sql.GetParameters());
+      return this.Connection.Execute(this.GetSqlString(sql), sql.GetParameters());
     }
 
 
@@ -182,7 +190,7 @@ namespace AyaEntity.Base
       Type type = typeof(TableEntity);
       ISqlStatementToSql sql = this.currentService
                               .Config("Insert",type,parameters);
-      return this.Connection.Execute(sql.ToSql(), sql.GetParameters());
+      return this.Connection.Execute(this.GetSqlString(sql), sql.GetParameters());
     }
 
 
@@ -200,7 +208,7 @@ namespace AyaEntity.Base
       Type type = typeof(TableEntity);
       ISqlStatementToSql sql = this.currentService
                               .Config("InsertList",type,parameters);
-      return this.Connection.Execute(sql.ToSql(), sql.GetParameters());
+      return this.Connection.Execute(this.GetSqlString(sql), sql.GetParameters());
     }
 
 

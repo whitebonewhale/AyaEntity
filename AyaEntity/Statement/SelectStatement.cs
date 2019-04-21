@@ -46,6 +46,7 @@ namespace AyaEntity.Statement
       {
         buffer.Append(" ORDER BY ").Append(this.sortField).Append(" " + this.sortType.ToString());
       }
+      
       return buffer.ToString();
     }
 
