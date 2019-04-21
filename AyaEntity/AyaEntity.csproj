@@ -5,6 +5,7 @@
     <AssemblyName>AyaEntity</AssemblyName>
     <RootNamespace>AyaEntity</RootNamespace>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Configurations>Debug;Release;Test</Configurations>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
