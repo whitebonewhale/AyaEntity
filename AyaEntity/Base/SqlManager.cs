@@ -1,5 +1,5 @@
 ﻿using AyaEntity.SqlServices;
-using AyaEntity.SqlStatement;
+using AyaEntity.Statement;
 using Dapper;
 using MySql.Data.MySqlClient;
 using System;

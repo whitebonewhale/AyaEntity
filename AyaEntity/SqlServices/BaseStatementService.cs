@@ -1,5 +1,5 @@
 ﻿using AyaEntity.DataUtils;
-using AyaEntity.SqlStatement;
+using AyaEntity.Statement;
 using System;
 using System.Collections.Generic;
 using System.Text;

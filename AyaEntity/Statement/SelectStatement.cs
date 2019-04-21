@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-namespace AyaEntity.SqlStatement
+namespace AyaEntity.Statement
 {
 
 

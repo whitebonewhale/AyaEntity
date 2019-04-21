@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace AyaEntity.SqlStatement
+namespace AyaEntity.Statement
 {
   public abstract class SqlStatement : ISqlStatementToSql
   {

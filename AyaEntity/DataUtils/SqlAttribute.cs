@@ -1,4 +1,4 @@
-﻿using AyaEntity.SqlStatement;
+﻿using AyaEntity.Statement;
 using Dapper;
 using System;
 using System.Collections.Generic;
@@ -51,13 +51,15 @@ namespace AyaEntity.DataUtils
       PropertyInfo[] fields = conditionParam.GetType().GetProperties();
       return fields.Join(" " + conditionOpertor.ToString() + " ", m =>
       {
+        ColumnNameAttribute column = m.GetCustomAttribute<ColumnNameAttribute>();
+        string cName = (column != null) ?column.ColumnName:m.Name;
         if ((typeof(IEnumerable<object>).IsAssignableFrom(m.PropertyType)))
         {
-          return m.Name + " in @" + m.Name;
+          return cName + " in @" + m.Name;
         }
         else
         {
-          return m.Name + "=@" + m.Name;
+          return cName + "=@" + m.Name;
         }
       });
     }
