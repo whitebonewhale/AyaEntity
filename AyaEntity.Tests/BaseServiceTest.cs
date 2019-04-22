@@ -32,7 +32,16 @@ namespace AyaEntity.Tests
     public string article_title { get; set; }
   }
 
-
+  /// <summary>
+  /// 解除掉此注释，配置自己的数据库
+  /// </summary>
+  //public class Config
+  //{
+  //  public const string server="服务器地址";
+  //  public const string username="用户名";
+  //  public const string pwd ="密码";
+  //  public const string dbName ="数据库名";
+  //}
 
   [TestClass]
   public class BaseServiceTest

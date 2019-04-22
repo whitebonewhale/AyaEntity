@@ -4,6 +4,7 @@
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 #custom
 Ïë·¨.docx
+AyaEntity.Tests/Config.cs
 
 # User-specific files
 *.suo
