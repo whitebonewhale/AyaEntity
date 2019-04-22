@@ -1,4 +1,5 @@
-﻿using AyaEntity.SqlServices;
+﻿using AyaEntity.DataUtils;
+using AyaEntity.SqlServices;
 using AyaEntity.Statement;
 using Dapper;
 using MySql.Data.MySqlClient;
@@ -30,6 +31,8 @@ namespace AyaEntity.Base
   public class SqlManager
   {
 
+    public Dictionary<string, StatementService> ServicePool => this.serviceOption.servicesPool;
+
     /// <summary>
     /// service option 结构
     /// </summary>
@@ -38,7 +41,6 @@ namespace AyaEntity.Base
     private string GetSqlString(ISqlStatementToSql sql)
     {
       string str =  sql.ToSql();
-      Console.WriteLine(str);
       return str;
     }
 
@@ -119,6 +121,28 @@ namespace AyaEntity.Base
     }
 
 
+    /// <summary>
+    /// 执行自定义Sql 获取一个实体
+    /// </summary>
+    /// <typeparam name="TResult">实体类</typeparam>
+    /// <param name="sql"></param>
+    /// <returns></returns>
+    public TOutput ExcuteCustomGet<TOutput>(ISqlStatementToSql sql)
+    {
+      return this.Connection.QueryFirst<TOutput>(this.GetSqlString(sql), sql.GetParameters());
+    }
+
+    /// <summary>
+    /// 执行自定义Sql 获取列表数据
+    /// </summary>
+    /// <typeparam name="TResult">实体类</typeparam>
+    /// <param name="sql"></param>
+    /// <returns></returns>
+    public IEnumerable<TOutput> ExcuteCustomGetList<TOutput>(ISqlStatementToSql sql)
+    {
+      return this.Connection.Query<TOutput>(this.GetSqlString(sql), sql.GetParameters());
+    }
+
 
     /// <summary>
     /// 获取一个实体
@@ -126,26 +150,32 @@ namespace AyaEntity.Base
     /// <typeparam name="TResult">实体类</typeparam>
     /// <param name="sql"></param>
     /// <returns></returns>
-    public TOutput Get<TOutput>(object parameters = null)
+    public TOutput Get<TOutput>(object parameters = null, params string[] whereCondition)
     {
       Type type = typeof(TOutput);
       ISqlStatementToSql sql = this.currentService
-                              .Config("Get",type,parameters);
+                              .Config("Get",type,parameters)
+                              .Where(whereCondition);
       return this.Connection.QueryFirst<TOutput>(this.GetSqlString(sql), sql.GetParameters());
     }
+
 
     /// <summary>
     /// 获取一个列表
     /// </summary>
     /// <typeparam name="TOutput"></typeparam>
     /// <returns></returns>
-    public IEnumerable<TOutput> GetList<TOutput>(object parameters = null)
+    public IEnumerable<TOutput> GetList<TOutput>(object parameters = null, params string[] whereCondition)
     {
       Type type = typeof(TOutput);
       ISqlStatementToSql sql = this.currentService
-                              .Config("GetList",type,parameters);
+                              .Config("GetList",type,parameters)
+                              .Where(whereCondition);
       return this.Connection.Query<TOutput>(this.GetSqlString(sql), sql.GetParameters());
     }
+
+
+
 
 
     /// <summary>

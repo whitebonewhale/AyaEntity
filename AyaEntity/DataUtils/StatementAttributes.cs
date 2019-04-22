@@ -29,6 +29,11 @@ namespace AyaEntity.DataUtils
   }
 
 
+
+  public class ApplyConditionAttribute : Attribute
+  {
+  }
+
   public class StatementOperateAttribute : Attribute
   {
     public SqlOperate Operate;
@@ -43,12 +48,10 @@ namespace AyaEntity.DataUtils
   /// 主键列特性标识
   /// </summary>
   [AttributeUsage(AttributeTargets.Property)]
-  public class PrimaryColumnAttribute : Attribute
+  public class PrimaryKeyAttribute : Attribute
   {
-    public string ColumnName { get; set; }
-    public PrimaryColumnAttribute(string name)
+    public PrimaryKeyAttribute()
     {
-      this.ColumnName = name;
     }
 
   }

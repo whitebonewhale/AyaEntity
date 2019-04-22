@@ -13,6 +13,13 @@ namespace AyaEntity.SqlServices
 
   public abstract class StatementService
   {
+    // 获取执行的sql string
+    public ISqlStatementToSql GetExcuteSQLString(string funcName, Type type, object conditionParameters)
+    {
+      ISqlStatementToSql sql = this.Config(funcName,type,conditionParameters);
+      return sql;
+    }
+
 
 
 
@@ -41,10 +48,10 @@ namespace AyaEntity.SqlServices
     /// <param name="type">sql结果，实体类型</param>
     /// <param name="conditionParameters">sql 参数</param>
     /// <returns></returns>
-    public ISqlStatementToSql Config(string funcName, Type type, object conditionParameters)
+    public SqlStatement Config(string funcName, Type type, object conditionParameters)
     {
       this.entityType = type;
-      ISqlStatementToSql sql = this.CreateSql(funcName, conditionParameters);
+      SqlStatement sql = this.CreateSql(funcName, conditionParameters);
       return sql;
     }
 
@@ -62,7 +69,7 @@ namespace AyaEntity.SqlServices
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    protected abstract ISqlStatementToSql CreateSql(string funcName, object conditionParameters);
+    protected abstract SqlStatement CreateSql(string funcName, object conditionParameters);
 
 
 

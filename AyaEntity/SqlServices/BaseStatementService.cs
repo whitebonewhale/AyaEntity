@@ -12,32 +12,31 @@ namespace AyaEntity.SqlServices
     /// <summary>
     /// 优化：只生成一次
     /// </summary>
-    private SelectStatement selectSql;
+    private MysqlSelectStatement selectSql;
     private UpdateStatement updateSql;
     private DeleteStatement deleteSql;
     private InsertStatement insertSql;
 
 
-    protected override ISqlStatementToSql CreateSql(string funcName, object conditionParameters)
+
+    protected override SqlStatement CreateSql(string funcName, object conditionParameters)
     {
-      ISqlStatementToSql sql = null;
+      SqlStatement sql = null;
       //typeof(SqlManager).GetMethod(funcName).GetCustomAttributes(typeof(StatementOperateAttribute), false)
       switch (funcName)
       {
         case "Get":
-          sql = this.Select(conditionParameters).Select("top 1 *");
+          sql = this.Select(conditionParameters).Select(SqlAttribute.GetColumns(this.entityType)).Limit(1);
           break;
         case "GetList":
-          sql = this.Select(conditionParameters).Select("*");
+          sql = this.Select(conditionParameters).Select(SqlAttribute.GetColumns(this.entityType));
           break;
-
         case "Update":
           sql = this.Update(conditionParameters);
           break;
         case "Delete":
           sql = this.Delete(conditionParameters);
           break;
-
         case "Insert":
           sql = this.Insert(conditionParameters);
           break;
@@ -58,11 +57,11 @@ namespace AyaEntity.SqlServices
     /// 生成默认select sql方法 
     /// </summary>
     /// <returns></returns>
-    private SelectStatement Select(object conditionParam)
+    private MysqlSelectStatement Select(object conditionParam)
     {
       if (this.selectSql == null)
       {
-        this.selectSql = new SelectStatement();
+        this.selectSql = new MysqlSelectStatement();
       }
       this.selectSql.From(SqlAttribute.GetTableName(this.entityType))
                     .Where(conditionParam);
@@ -88,7 +87,7 @@ namespace AyaEntity.SqlServices
     }
 
 
-    private ISqlStatementToSql Delete(object conditionParam)
+    private DeleteStatement Delete(object conditionParam)
     {
       if (this.deleteSql == null)
       {
@@ -99,15 +98,16 @@ namespace AyaEntity.SqlServices
       return this.deleteSql;
     }
 
-    private ISqlStatementToSql Insert(object conditionParam)
+    private InsertStatement Insert(object conditionParam)
     {
 
       if (this.insertSql == null)
       {
         this.insertSql = new InsertStatement();
       }
-      return this.insertSql.Insert(SqlAttribute.GetInsertCoulmn(this.entityType), conditionParam)
-                    .From(SqlAttribute.GetTableName(this.entityType));
+      this.insertSql.Insert(SqlAttribute.GetInsertCoulmn(this.entityType), conditionParam)
+                   .From(SqlAttribute.GetTableName(this.entityType));
+      return this.insertSql;
     }
 
     #endregion

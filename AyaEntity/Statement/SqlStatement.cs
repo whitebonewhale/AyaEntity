@@ -21,7 +21,8 @@ namespace AyaEntity.Statement
     {
       get
       {
-        return string.IsNullOrEmpty(this.whereCondition)
+
+        return string.IsNullOrEmpty(this.whereCondition) && this.conditionParam != null
           ? SqlAttribute.GetWhereCondition(this.conditionParam, this.conditionOpertor)
           : this.whereCondition;
       }
@@ -45,13 +46,13 @@ namespace AyaEntity.Statement
     /// <param name="condition"></param>
     /// <param name="parameters"></param>
     /// <returns></returns>
-    public SqlStatement Where(object sqlParam = null, params string[] whereCondition)
+    public SqlStatement Where(object sqlParam = null, params string[] condition)
     {
       this.conditionParam = sqlParam;
       // 根据参数自动生成默认condition语句
-      if (whereCondition != null)
+      if (condition != null && condition.Length > 0)
       {
-        this.whereCondition = "(" + string.Join(") " + this.conditionOpertor.ToString() + " (", this.whereCondition) + ")";
+        this.whereCondition = "(" + string.Join(") " + this.conditionOpertor.ToString() + " (", condition) + ")";
       }
       return this;
     }
@@ -63,11 +64,11 @@ namespace AyaEntity.Statement
     /// <returns></returns>
     public SqlStatement Where(params string[] condition)
     {
-      if (condition == null)
+      if (condition == null || condition.Length == 0)
       {
-        throw new ArgumentNullException("where 条件参数为空：condition");
+        return this;
       }
-      this.whereCondition = "(" + string.Join(") " + this.conditionOpertor.ToString() + " (", this.whereCondition) + ")";
+      this.whereCondition = "(" + string.Join(") " + this.conditionOpertor.ToString() + " (", condition) + ")";
       return this;
     }
 

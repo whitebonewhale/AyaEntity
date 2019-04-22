@@ -12,12 +12,14 @@ namespace AyaEntity.Statement
   /// <summary>
   /// select sql语句生成,实现其他select复杂语句可继承此类扩展重写即可
   /// </summary>
-  public class SelectStatement : SqlStatement
+  public class MysqlSelectStatement : SqlStatement
   {
     public SortType sortType = SortType.DESC;
     public string sortField;
     protected string[] groupFields;
 
+    private int limitSize;
+    private int limitOffset;
 
 
     /// <summary>
@@ -32,7 +34,7 @@ namespace AyaEntity.Statement
       // from
       buffer.Append(" FROM ").Append(this.tableName);
       // where
-      if (string.IsNullOrEmpty(this.getWhereCondition))
+      if (!string.IsNullOrEmpty(this.getWhereCondition))
       {
         buffer.Append(" WHERE ").Append(this.getWhereCondition);
       }
@@ -46,8 +48,19 @@ namespace AyaEntity.Statement
       {
         buffer.Append(" ORDER BY ").Append(this.sortField).Append(" " + this.sortType.ToString());
       }
-      
+
+      if (this.limitSize > 0)
+      {
+        buffer.Append($" LIMIT {this.limitOffset},{this.limitSize}");
+      }
       return buffer.ToString();
+    }
+
+    public MysqlSelectStatement Limit(int size, int offset = 0)
+    {
+      this.limitSize = size;
+      this.limitOffset = offset;
+      return this;
     }
 
 
@@ -59,7 +72,7 @@ namespace AyaEntity.Statement
 
 
 
-    public SelectStatement Select(params string[] columns)
+    public MysqlSelectStatement Select(params string[] columns)
     {
       this.columns = columns;
       return this;
@@ -71,7 +84,7 @@ namespace AyaEntity.Statement
     /// </summary>
     /// <param name="fields"></param>
     /// <returns></returns>
-    public SelectStatement Group(params string[] fields)
+    public MysqlSelectStatement Group(params string[] fields)
     {
       this.groupFields = fields;
       return this;

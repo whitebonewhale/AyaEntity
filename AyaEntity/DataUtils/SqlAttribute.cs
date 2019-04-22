@@ -36,7 +36,7 @@ namespace AyaEntity.DataUtils
         ColumnNameAttribute column = mbox.GetCustomAttribute<ColumnNameAttribute>();
         if (column != null)
         {
-          return column.ColumnName;
+          return column.ColumnName + " as " + mbox.Name;
         }
         else
         {
@@ -48,12 +48,34 @@ namespace AyaEntity.DataUtils
 
     public static string GetWhereCondition(object conditionParam, ConditionOpertor conditionOpertor)
     {
-      PropertyInfo[] fields = conditionParam.GetType().GetProperties();
+      
+      IEnumerable<PropertyInfo> fields = conditionParam.GetType().GetProperties().Where(m=>
+      {
+        object value = m.GetValue(conditionParam);
+        // 如果参数value为null，则不拼接进sql where语句中
+        if (value == null)
+        {
+          return false;
+        }
+        else if (m.PropertyType.IsValueType)
+        {
+          if (m.PropertyType == typeof(DateTime) && default(DateTime) == (DateTime)value)
+          {
+            return false;
+          }
+          else if (Convert.ToDouble(value) == 0)
+          {
+            return false;
+          }
+        }
+        return true;
+      });
       return fields.Join(" " + conditionOpertor.ToString() + " ", m =>
       {
+        // 对属性值进行自定义判断，决定是否拼接进sql where语句中
         ColumnNameAttribute column = m.GetCustomAttribute<ColumnNameAttribute>();
         string cName = (column != null) ?column.ColumnName:m.Name;
-        if ((typeof(IEnumerable<object>).IsAssignableFrom(m.PropertyType)))
+        if (typeof(IEnumerable<object>).IsAssignableFrom(m.PropertyType))
         {
           return cName + " in @" + m.Name;
         }
@@ -78,10 +100,10 @@ namespace AyaEntity.DataUtils
       foreach (var mbox in updateEnity.GetProperties())
       {
         ColumnNameAttribute column = mbox.GetCustomAttribute<ColumnNameAttribute>();
-        PrimaryColumnAttribute primary = mbox.GetCustomAttribute<PrimaryColumnAttribute>();
+        PrimaryKeyAttribute primary = mbox.GetCustomAttribute<PrimaryKeyAttribute>();
         if (primary != null)
         {
-          primaryColumn = (string.IsNullOrEmpty(primary.ColumnName)) ? mbox.Name : primary.ColumnName;
+          primaryColumn = (string.IsNullOrEmpty(column.ColumnName)) ? mbox.Name : column.ColumnName;
         }
         else
         {
@@ -102,10 +124,11 @@ namespace AyaEntity.DataUtils
       List<string> results = new List<string>();
       foreach (var mbox in entityType.GetProperties())
       {
-        PrimaryColumnAttribute m = mbox.GetCustomAttribute<PrimaryColumnAttribute>();
+        PrimaryKeyAttribute m = mbox.GetCustomAttribute<PrimaryKeyAttribute>();
         if (m != null)
         {
-          return (string.IsNullOrEmpty(m.ColumnName)) ? mbox.Name : m.ColumnName;
+          ColumnNameAttribute column = mbox.GetCustomAttribute<ColumnNameAttribute>();
+          return (string.IsNullOrEmpty(column.ColumnName)) ? mbox.Name : column.ColumnName;
         }
       }
       throw new InvalidOperationException("获取主键列错误，必须指定一个属性为主键，请为实体类“" + entityType.FullName + "”添加主键特性列");
@@ -124,9 +147,11 @@ namespace AyaEntity.DataUtils
       Dictionary<string,string>  results = new Dictionary<string,string> ();
       foreach (var mbox in entityType.GetProperties())
       {
-        PrimaryColumnAttribute m = mbox.GetCustomAttribute<PrimaryColumnAttribute>();
-        if (m != null)
+        // 非自增列
+        IdentityKeyAttribute identity = mbox.GetCustomAttribute<IdentityKeyAttribute>();
+        if (identity == null)
         {
+          ColumnNameAttribute m = mbox.GetCustomAttribute<ColumnNameAttribute>();
           results.Add(string.IsNullOrEmpty(m.ColumnName) ? mbox.Name : m.ColumnName, mbox.Name);
         }
       }
