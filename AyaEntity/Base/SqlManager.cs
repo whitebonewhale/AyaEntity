@@ -15,7 +15,7 @@ namespace AyaEntity.Base
   /// <summary>
   /// 配置项
   /// </summary>
-  public struct StatementOption
+  public class StatementOption
   {
     public string CurrentServiceKey;
     public Dictionary<string,StatementService> servicesPool;
@@ -36,7 +36,7 @@ namespace AyaEntity.Base
     /// <summary>
     /// service option 结构
     /// </summary>
-    protected StatementOption serviceOption;
+    protected StatementOption serviceOption = new StatementOption();
 
     private string GetSqlString(ISqlStatementToSql sql)
     {
@@ -119,6 +119,19 @@ namespace AyaEntity.Base
       action(this.serviceOption);
       return this;
     }
+    public SqlManager UseService(string key, string method)
+    {
+      this.serviceOption.CurrentServiceKey = key;
+      this.serviceOption.ServiceMethod = method;
+      return this;
+    }
+
+    public SqlManager UseServiceDefault()
+    {
+      this.serviceOption.CurrentServiceKey = "default";
+      this.serviceOption.ServiceMethod = string.Empty;
+      return this;
+    }
 
 
     /// <summary>
@@ -129,7 +142,7 @@ namespace AyaEntity.Base
     /// <returns></returns>
     public TOutput ExcuteCustomGet<TOutput>(ISqlStatementToSql sql)
     {
-      return this.Connection.QueryFirst<TOutput>(this.GetSqlString(sql), sql.GetParameters());
+      return this.Connection.QueryFirstOrDefault<TOutput>(this.GetSqlString(sql), sql.GetParameters());
     }
 
     /// <summary>
@@ -142,7 +155,34 @@ namespace AyaEntity.Base
     {
       return this.Connection.Query<TOutput>(this.GetSqlString(sql), sql.GetParameters());
     }
+    /// <summary>
+    /// 自定义执行sql语句，返回影响行数或自定义整数结果（例如自增id）
+    /// </summary>
+    /// <typeparam name="TableEntity"></typeparam>
+    /// <param name="sql"></param>
+    /// <returns></returns>
+    public int ExcuteCustomExcute<TableEntity>(ISqlStatementToSql sql)
+    {
+      return this.Connection.Execute(this.GetSqlString(sql), sql.GetParameters());
+    }
 
+
+    /// <summary>
+    /// 获取一个自定义类型
+    /// </summary>
+    /// <typeparam name="TOutput"></typeparam>
+    /// <typeparam name="TEntity"></typeparam>
+    /// <param name="parameters"></param>
+    /// <param name="whereCondition"></param>
+    /// <returns></returns>
+    public TOutput Get<TOutput, TEntity>(object parameters = null, string whereCondition = null)
+    {
+      Type type = typeof(TEntity);
+      ISqlStatementToSql sql = this.currentService
+                              .Config("Get",type,parameters)
+                              .Where(whereCondition);
+      return this.Connection.QueryFirstOrDefault<TOutput>(this.GetSqlString(sql), sql.GetParameters());
+    }
 
     /// <summary>
     /// 获取一个实体
@@ -150,28 +190,43 @@ namespace AyaEntity.Base
     /// <typeparam name="TResult">实体类</typeparam>
     /// <param name="sql"></param>
     /// <returns></returns>
-    public TOutput Get<TOutput>(object parameters = null, params string[] whereCondition)
+    public TEntity GetEntity<TEntity>(object parameters = null, string whereCondition = null)
     {
-      Type type = typeof(TOutput);
+      Type type = typeof(TEntity);
       ISqlStatementToSql sql = this.currentService
-                              .Config("Get",type,parameters)
+                              .Config("GetEntity",type,parameters)
                               .Where(whereCondition);
-      return this.Connection.QueryFirst<TOutput>(this.GetSqlString(sql), sql.GetParameters());
+      return this.Connection.QueryFirstOrDefault<TEntity>(this.GetSqlString(sql), sql.GetParameters());
     }
 
-
     /// <summary>
-    /// 获取一个列表
+    /// 获取一个自定义类型列表
     /// </summary>
     /// <typeparam name="TOutput"></typeparam>
+    /// <typeparam name="TEntity"></typeparam>
+    /// <param name="parameters"></param>
+    /// <param name="whereCondition"></param>
     /// <returns></returns>
-    public IEnumerable<TOutput> GetList<TOutput>(object parameters = null, params string[] whereCondition)
+    public IEnumerable<TOutput> GetList<TOutput, TEntity>(object parameters = null, string whereCondition = null)
     {
-      Type type = typeof(TOutput);
+      Type type = typeof(TEntity);
       ISqlStatementToSql sql = this.currentService
                               .Config("GetList",type,parameters)
                               .Where(whereCondition);
       return this.Connection.Query<TOutput>(this.GetSqlString(sql), sql.GetParameters());
+    }
+    /// <summary>
+    /// 获取一个列表
+    /// </summary>
+    /// <typeparam name="TEntity"></typeparam>
+    /// <returns></returns>
+    public IEnumerable<TEntity> GetEntityList<TEntity>(object parameters = null, string whereCondition = null)
+    {
+      Type type = typeof(TEntity);
+      ISqlStatementToSql sql = this.currentService
+                              .Config("GetEntityList",type,parameters)
+                              .Where(whereCondition);
+      return this.Connection.Query<TEntity>(this.GetSqlString(sql), sql.GetParameters());
     }
 
 
@@ -185,11 +240,12 @@ namespace AyaEntity.Base
     /// <param name="parameters"></param>
     /// <returns></returns>
 
-    public int Delete<TableEntity>(object parameters)
+    public int Delete<TableEntity>(object parameters, string whereCondition = null)
     {
       Type type = typeof(TableEntity);
       ISqlStatementToSql sql = this.currentService
-                              .Config("Delete",type,parameters);
+                              .Config("Delete",type,parameters)
+                              .Where(whereCondition);
       return this.Connection.Execute(this.GetSqlString(sql), sql.GetParameters());
 
     }
@@ -197,16 +253,18 @@ namespace AyaEntity.Base
     /// <summary>
     /// 根据table泛型更新数据
     /// </summary>
-    /// <typeparam name="TableEntity"></typeparam>
-    /// <param name="updateEntity">复合参数（要更新的字段 和 where条件字段 都在这个对象里）</param>
+    /// <param name="updateEntity">复合参数（set字段 和 where条件字段 都在这个对象里）</param>
     /// <returns></returns>
-    public int Update<TableEntity>(object updateEntity)
+    public int Update<TableEntity>(object updateEntity, string whereCondition = null, params string[] setColumns)
     {
       Type type = typeof(TableEntity);
       ISqlStatementToSql sql = this.currentService
-                              .Config("Update",type,updateEntity);
+                              .Config("Update",type,updateEntity)
+                              .UpdateSetColumns(setColumns)
+                              .Where(whereCondition);
       return this.Connection.Execute(this.GetSqlString(sql), sql.GetParameters());
     }
+
 
 
     /// <summary>
@@ -222,8 +280,6 @@ namespace AyaEntity.Base
                               .Config("Insert",type,parameters);
       return this.Connection.Execute(this.GetSqlString(sql), sql.GetParameters());
     }
-
-
 
 
 

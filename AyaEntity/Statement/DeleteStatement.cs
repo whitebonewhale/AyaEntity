@@ -26,9 +26,13 @@ namespace AyaEntity.Statement
       // from
       buffer.Append("DELETE FROM ").Append(this.tableName);
       // where
-      if (string.IsNullOrEmpty(this.getWhereCondition))
+      if (!string.IsNullOrEmpty(this.getWhereCondition))
       {
         buffer.Append(" WHERE ").Append(this.getWhereCondition);
+      }
+      else
+      {
+        throw new InvalidOperationException("delete操作必须指定where参数，ps:可指定where 1=1");
       }
       return buffer.ToString();
     }

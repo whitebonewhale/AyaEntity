@@ -25,13 +25,17 @@ namespace AyaEntity.Statement
       StringBuilder buffer = new StringBuilder();
 
       // from
-      buffer.Append("UPDATE FROM ").Append(this.tableName);
+      buffer.Append("UPDATE ").Append(this.tableName);
       // set fields
       buffer.Append(" SET ").Append(this.columns.Join(",", m => m));
       // where
-      if (string.IsNullOrEmpty(this.getWhereCondition))
+      if (!string.IsNullOrEmpty(this.whereCondition))
       {
-        buffer.Append(" WHERE ").Append(this.getWhereCondition);
+        buffer.Append(" WHERE ").Append(this.whereCondition);
+      }
+      else
+      {
+        throw new InvalidOperationException("update 操作必须指定 where 参数，ps:可指定 where 1=1");
       }
       return buffer.ToString();
     }
@@ -47,22 +51,10 @@ namespace AyaEntity.Statement
     }
 
 
-    public UpdateStatement Update(object sqlParam)
+
+    public UpdateStatement Set(object conditionParameters)
     {
-      return this;
-    }
-
-
-    public UpdateStatement Set(params string[] setColumns)
-    {
-      this.columns = setColumns;
-      return this;
-    }
-
-
-    public UpdateStatement WherePrimaryKey(string primaryKey)
-    {
-      this.whereCondition = primaryKey + "=@" + primaryKey;
+      this.conditionParam = conditionParameters;
       return this;
     }
   }

@@ -14,9 +14,9 @@ namespace AyaEntity.SqlServices
   public abstract class StatementService
   {
     // 获取执行的sql string
-    public ISqlStatementToSql GetExcuteSQLString(string funcName, Type type, object conditionParameters)
+    public SqlStatement GetExcuteSQLString(string funcName, Type type, object conditionParameters)
     {
-      ISqlStatementToSql sql = this.Config(funcName,type,conditionParameters);
+      SqlStatement sql = this.Config(funcName,type,conditionParameters);
       return sql;
     }
 

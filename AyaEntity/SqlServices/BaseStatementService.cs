@@ -25,10 +25,10 @@ namespace AyaEntity.SqlServices
       //typeof(SqlManager).GetMethod(funcName).GetCustomAttributes(typeof(StatementOperateAttribute), false)
       switch (funcName)
       {
-        case "Get":
+        case "GetEntity":
           sql = this.Select(conditionParameters).Select(SqlAttribute.GetColumns(this.entityType)).Limit(1);
           break;
-        case "GetList":
+        case "GetEntityList":
           sql = this.Select(conditionParameters).Select(SqlAttribute.GetColumns(this.entityType));
           break;
         case "Update":
@@ -79,8 +79,8 @@ namespace AyaEntity.SqlServices
         this.updateSql = new UpdateStatement();
       }
 
-      this.updateSql.Update(conditionParameters)
-                    .Set(SqlAttribute.GetUpdateColumns(this.entityType, out string primaryKey).ToArray())
+      this.updateSql.Set(conditionParameters)
+                    .UpdateSetColumns(SqlAttribute.GetUpdateColumns(conditionParameters, out string primaryKey).ToArray())
                     .WherePrimaryKey(primaryKey)
                     .From(SqlAttribute.GetTableName(this.entityType));
       return this.updateSql;

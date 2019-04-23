@@ -45,28 +45,22 @@ namespace AyaEntity.DataUtils
       });
     }
 
-
+    /// <summary>
+    /// 根据参数，自动生成where条件语句
+    /// 
+    /// </summary>
+    /// <param name="conditionParam"></param>
+    /// <param name="conditionOpertor"></param>
+    /// <returns></returns>
     public static string GetWhereCondition(object conditionParam, ConditionOpertor conditionOpertor)
     {
-      
+      // TODO:丑陋的代码，这里将来肯定要进行优化，暂时没有想到好办法
       IEnumerable<PropertyInfo> fields = conditionParam.GetType().GetProperties().Where(m=>
       {
         object value = m.GetValue(conditionParam);
-        // 如果参数value为null，则不拼接进sql where语句中
-        if (value == null)
+        if(ValueVerify(value,m.PropertyType))
         {
           return false;
-        }
-        else if (m.PropertyType.IsValueType)
-        {
-          if (m.PropertyType == typeof(DateTime) && default(DateTime) == (DateTime)value)
-          {
-            return false;
-          }
-          else if (Convert.ToDouble(value) == 0)
-          {
-            return false;
-          }
         }
         return true;
       });
@@ -87,18 +81,38 @@ namespace AyaEntity.DataUtils
     }
 
 
+    /// <summary>
+    /// 验证实体类的属性,过滤掉值等于默认值、等于null的属性，使其不参与进sql拼接逻辑
+    /// </summary>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    public static bool ValueVerify(object value, Type propertyType)
+    {
+      // 1:如果参数value为null，则不拼接进sql where语句中
+      // 2:暂不处理事件类型属性字段，自定义扩展service解决
+      // 3:值类型 需要判断对应的默认值，如果是默认值，则判定为未赋值，不参与sql语句
+      return (value == null
+          || propertyType == typeof(DateTime)
+          || (propertyType.IsValueType && Convert.ToDouble(value) == 0));
+    }
 
     /// <summary>
     /// 根据特性获取可更新列(排除主键列），并输出主键列名
     /// </summary>
     /// <param name="updateEnity"></param>
     /// <returns></returns>
-    public static List<string> GetUpdateColumns(Type updateEnity, out string primaryColumn)
+    public static List<string> GetUpdateColumns(object conditionParam, out string primaryColumn)
     {
       List<string> results = new List<string>();
       primaryColumn = null;
-      foreach (var mbox in updateEnity.GetProperties())
+      foreach (var mbox in conditionParam.GetType().GetProperties())
       {
+        object value = mbox.GetValue(conditionParam);
+        if (ValueVerify(value, mbox.PropertyType))
+        {
+          continue;
+        }
+
         ColumnNameAttribute column = mbox.GetCustomAttribute<ColumnNameAttribute>();
         PrimaryKeyAttribute primary = mbox.GetCustomAttribute<PrimaryKeyAttribute>();
         if (primary != null)

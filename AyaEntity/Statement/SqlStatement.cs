@@ -8,6 +8,9 @@ namespace AyaEntity.Statement
 {
   public abstract class SqlStatement : ISqlStatementToSql
   {
+
+
+
     // where语句连接运算符: and/or
     public ConditionOpertor conditionOpertor = ConditionOpertor.AND;
     protected IEnumerable<string> columns;
@@ -21,7 +24,6 @@ namespace AyaEntity.Statement
     {
       get
       {
-
         return string.IsNullOrEmpty(this.whereCondition) && this.conditionParam != null
           ? SqlAttribute.GetWhereCondition(this.conditionParam, this.conditionOpertor)
           : this.whereCondition;
@@ -62,15 +64,34 @@ namespace AyaEntity.Statement
     /// </summary>
     /// <param name="condition"></param>
     /// <returns></returns>
-    public SqlStatement Where(params string[] condition)
+    public SqlStatement Where(string condition)
     {
-      if (condition == null || condition.Length == 0)
+      if (!string.IsNullOrEmpty(condition))
       {
-        return this;
+        this.whereCondition = condition;
       }
-      this.whereCondition = "(" + string.Join(") " + this.conditionOpertor.ToString() + " (", condition) + ")";
       return this;
     }
 
+    public SqlStatement UpdateSetColumns(params string[] setColumns)
+    {
+      if (setColumns != null && setColumns.Length > 0)
+      {
+
+        this.columns = setColumns;
+      }
+      return this;
+    }
+
+
+
+    public SqlStatement WherePrimaryKey(string primaryKey)
+    {
+      if (!string.IsNullOrEmpty(primaryKey))
+      {
+        this.whereCondition = primaryKey + "=@" + primaryKey;
+      }
+      return this;
+    }
   }
 }

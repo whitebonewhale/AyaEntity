@@ -31,7 +31,7 @@ namespace AyaEntity.Statement
 
       // set fields
       buffer.Append("(").Append(this.insertColumns.Keys.Join(",", m => m)).Append(")");
-      buffer.Append(" VALUSE(").Append(this.insertColumns.Values.Join(",", m => "@" + m)).Append(")");
+      buffer.Append(" VALUES(").Append(this.insertColumns.Values.Join(",", m => "@" + m)).Append(")");
       return buffer.ToString();
     }
 
