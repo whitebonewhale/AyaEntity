@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace AyaEntity.SQLTools
+namespace AyaEntity.DataUtils
 {
   public class PagingResult<T>
   {

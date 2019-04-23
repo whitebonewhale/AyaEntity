@@ -30,16 +30,8 @@ namespace AyaEntity.Tests
   }
 
 
-  class blog_article
-  {
-    public int id { get; set; }
-    public string article_name { get; set; }
-    public string article_title { get; set; }
-    public byte state { get; set; }
-  }
-
   /// <summary>
-  /// 解除掉此注释，配置自己的数据库
+  /// 解除掉此注释，配置自己的测试数据库
   /// </summary>
   //public class Config
   //{
@@ -87,6 +79,11 @@ namespace AyaEntity.Tests
     }
 
 
+    [TestMethod]
+    public void test()
+    {
+      string sql = "";
+    }
 
     /// <summary>
     /// 测试获取list entity
@@ -203,8 +200,6 @@ namespace AyaEntity.Tests
     }
 
 
-
-
     /// <summary>
     /// 测试自定义sql语句
     /// </summary>
@@ -283,11 +278,9 @@ namespace AyaEntity.Tests
     {
       try
       {
-
         // 默认按照主键id更新数据
         Article max = this.manage.UseService("ArticleService", "GetMaxIdEntity").GetEntity<Article>();
         int row = this.manage.UseServiceDefault().Update<Article>(new Article { Name = "123" ,Id =0 });
-
       }
       catch (Exception ex)
       {
@@ -301,74 +294,6 @@ namespace AyaEntity.Tests
 
   }
 
-
-
-  /// <summary>
-  /// Demo：文章 service自定义扩展
-  /// </summary>
-  public class ArticleSqlService : StatementService
-  {
-
-
-    /// <summary>
-    /// 优化：只生成一次
-    /// </summary>
-    private MysqlSelectStatement selectSql = new MysqlSelectStatement();
-    private UpdateStatement updateSql = new UpdateStatement();
-    private DeleteStatement deleteSql;
-    private InsertStatement insertSql;
-
-
-    protected override SqlStatement CreateSql(string funcName, object conditionParameters)
-    {
-      string flag = funcName + ":" + this.methodName;
-      switch (flag)
-      {
-        // 模糊名字查询
-        case "Get:LikeName":
-          return this.selectSql
-                  .Limit(1)
-                  .Where("article_name like @Name")
-                  .From(SqlAttribute.GetTableName(this.entityType));
-        // 获取当前最大的自增id
-        case "Get:GetMaxId":
-          return this.selectSql
-                  .Select("Max(id)")
-                  .Limit(1)
-                  .Where(conditionParameters)
-                  .From(SqlAttribute.GetTableName(this.entityType));
-        // 获取当前最大的自增id 及entity
-        case "GetEntity:GetMaxIdEntity":
-          string tn = SqlAttribute.GetTableName(this.entityType);
-          return this.selectSql
-                  .Select(SqlAttribute.GetColumns(this.entityType))
-                  .From(tn)
-                  .Where("Id=("
-                  + new MysqlSelectStatement()
-                        .Select("Max(id) as Id")
-                        .Limit(1)
-                        .Where(conditionParameters)
-                        .From(tn).ToSql()
-                  + ")");
-        // state 自增加一
-        case "Update:StateAdd":
-          return this.updateSql
-                  .Set("state+=1")
-                  .Where(conditionParameters)
-                  .From(SqlAttribute.GetPrimaryColumn(this.entityType));
-        // 根据主键，更新文章头部信息（文章名字，文章标题）
-        //case "Update:UpdateHead":
-        //  return this.updateSql.Set("article_name=@Name", "article_title=@Title")
-        //                        .Where(SqlAttribute.GetPrimaryColumn(this.entityType));
-        default:
-          throw new NotImplementedException("未实现方法：" + flag);
-      }
-    }
-
-
-
-
-  }
 }
 
 

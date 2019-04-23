@@ -1,7 +1,7 @@
 ﻿using Dapper;
 using System.Linq;
 
-namespace AyaEntity
+namespace AyaEntity.DataUtils
 {
   /// <summary>
   /// 排序方式

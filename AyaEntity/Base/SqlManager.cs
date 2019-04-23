@@ -200,6 +200,35 @@ namespace AyaEntity.Base
     }
 
     /// <summary>
+    /// 分页获取一个自定义类型列表
+    /// </summary>
+    /// <typeparam name="TOutput"></typeparam>
+    /// <typeparam name="TEntity"></typeparam>
+    /// <param name="parameters"></param>
+    /// <param name="whereCondition"></param>
+    /// <returns></returns>
+    public PagingResult<TOutput> GetPaging<TOutput, TEntity>(object parameters, bool total = false, string whereCondition = null)
+    {
+      PagingResult<TOutput> result = new PagingResult<TOutput>();
+
+      Type type = typeof(TEntity);
+      ISqlStatementToSql sql = this.currentService
+                              .Config("GetPaging",type,parameters)
+                              .Where(whereCondition);
+
+      result.Rows = this.Connection.Query<TOutput>(this.GetSqlString(sql), sql.GetParameters());
+      if (total)
+      {
+        ISqlStatementToSql t_sql = this.currentService
+                              .Config("GetPaging:Total",type,parameters)
+                              .Where(whereCondition);
+        result.Total = this.Connection.QueryFirst<int>(t_sql.ToSql());
+      }
+      return result;
+    }
+
+
+    /// <summary>
     /// 获取一个自定义类型列表
     /// </summary>
     /// <typeparam name="TOutput"></typeparam>
@@ -215,6 +244,10 @@ namespace AyaEntity.Base
                               .Where(whereCondition);
       return this.Connection.Query<TOutput>(this.GetSqlString(sql), sql.GetParameters());
     }
+
+
+
+
     /// <summary>
     /// 获取一个列表
     /// </summary>

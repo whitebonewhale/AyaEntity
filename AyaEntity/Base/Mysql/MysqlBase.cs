@@ -19,29 +19,29 @@
 
 
 
-//    public PagingResult<T> PagingQuery<T>(PagingParameter pag, string condition)
-//    {
-//      IEnumerable<string> fields = pag.Parameters.ParameterNames;
-//      if (pag.TableName == null)
-//      {
-//        pag.SetTableName(this.GetTableName(typeof(T)));
-//      }
-//      string sql = CreatePagingQuery(pag);
+public PagingResult<T> PagingQuery<T>(PagingParameter pag, string condition)
+{
+  IEnumerable<string> fields = pag.Parameters.ParameterNames;
+  if (pag.TableName == null)
+  {
+    pag.SetTableName(this.GetTableName(typeof(T)));
+  }
+  string sql = CreatePagingQuery(pag);
 
-//      var multi = Connection.QueryMultiple(sql, pag.PageParameters);
+  var multi = Connection.QueryMultiple(sql, pag.PageParameters);
 
-//      PagingResult<T> result = new PagingResult<T>();
+  PagingResult<T> result = new PagingResult<T>();
 
 
-//      result.PageIndex = pag.PageIndex;
-//      result.RowSize = pag.RowSize;
-//      result.Rows = multi.Read<T>();
-//      if (pag.RequiredTotal)
-//      {
-//        result.Total = multi.ReadSingle<int>();
-//      }
-//      return result;
-//    }
+  result.PageIndex = pag.PageIndex;
+  result.RowSize = pag.RowSize;
+  result.Rows = multi.Read<T>();
+  if (pag.RequiredTotal)
+  {
+    result.Total = multi.ReadSingle<int>();
+  }
+  return result;
+}
 
 
 //    public int AutoIdByAdd<T>(T dyparam)
