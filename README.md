@@ -1,4 +1,15 @@
 # AyaEntity
-[填坑ing]
 
-基于Dapper封装的轻量级数据库orm小类库
+## 说明
+
+基于dapper的轻量简单的orm框架，实现简单及稍复杂的sql自动生成。
+可自定义扩展Sql service实现业务复杂sql。
+
+
+## Nuget
+
+Visual Studio Nuget 搜索 "AyaEntity" 下载安装
+
+
+
+> （继续填坑中...

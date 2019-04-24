@@ -6,6 +6,20 @@
     <RootNamespace>AyaEntity</RootNamespace>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Configurations>Debug;Release;Test</Configurations>
+    <Version>0.1.1</Version>
+    <Authors>Kaakira</Authors>
+    <Company>WhiteBoneWhale</Company>
+    <AssemblyVersion>0.0.1.1</AssemblyVersion>
+    <FileVersion>0.0.1.1</FileVersion>
+    <Description>基于dapper的轻量简单的orm框架，实现简单及稍复杂的sql自动生成。
+可自定义扩展Sql service实现业务复杂sql。
+</Description>
+    <PackageProjectUrl>https://github.com/whitebonewhale/AyaEntity</PackageProjectUrl>
+    <Copyright>© WhiteBoneWhale</Copyright>
+    <RepositoryUrl>https://github.com/whitebonewhale/AyaEntity</RepositoryUrl>
+    <RepositoryType>github</RepositoryType>
+    <PackageReleaseNotes>补充包说明信息</PackageReleaseNotes>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

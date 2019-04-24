@@ -20,18 +20,18 @@ namespace AyaEntity.DataUtils
   {
     public PagingParameter(string field, SortMode type)
     {
-      PageIndex = 1;
-      RowSize = 10;
-      OrderField = field;
-      OrderType = type;
+      this.PageIndex = 1;
+      this.RowSize = 10;
+      this.OrderField = field;
+      this.OrderType = type;
     }
 
     public PagingParameter(int pi, int ps, string field, SortMode type)
     {
-      OrderType = type;
-      OrderField = field;
-      RowSize = ps;
-      PageIndex = pi < 1 ? 1 : pi;
+      this.OrderType = type;
+      this.OrderField = field;
+      this.RowSize = ps;
+      this.PageIndex = pi < 1 ? 1 : pi;
     }
 
 
@@ -47,7 +47,7 @@ namespace AyaEntity.DataUtils
     /// <summary>
     /// 起始行计算
     /// </summary>
-    public int StartRow { get { return (PageIndex - 1) * RowSize; } }
+    public int StartRow { get { return (this.PageIndex - 1) * this.RowSize; } }
     /// <summary>
     /// 要查询的表名
     /// </summary>
@@ -65,8 +65,8 @@ namespace AyaEntity.DataUtils
     private string _sql_columns;
     public string Columns
     {
-      get { return string.IsNullOrEmpty(_sql_columns) ? "*" : _sql_columns; }
-      set { _sql_columns = value; }
+      get { return string.IsNullOrEmpty(this._sql_columns) ? "*" : this._sql_columns; }
+      set { this._sql_columns = value; }
     }
 
     /// <summary>
@@ -79,7 +79,7 @@ namespace AyaEntity.DataUtils
     }
     public void SetTableName(string tableName)
     {
-      TableName = tableName;
+      this.TableName = tableName;
     }
 
 
@@ -102,9 +102,9 @@ namespace AyaEntity.DataUtils
       get
       {
         DynamicParameters param = new DynamicParameters();
-        param.Add("@StartRow", StartRow);
-        param.Add("@RowSize", RowSize);
-        param.Add("@OrderField", OrderField);
+        param.Add("@StartRow", this.StartRow);
+        param.Add("@RowSize", this.RowSize);
+        param.Add("@OrderField", this.OrderField);
         return param;
       }
     }
