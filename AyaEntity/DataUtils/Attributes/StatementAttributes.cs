@@ -30,17 +30,11 @@ namespace AyaEntity.DataUtils
 
 
 
-  public class ApplyConditionAttribute : Attribute
+  /// <summary>
+  /// 因为一些原因，不想查询此字段
+  /// </summary>
+  public class NotSelectAttribute : Attribute
   {
-  }
-
-  public class StatementOperateAttribute : Attribute
-  {
-    public SqlOperate Operate;
-    public StatementOperateAttribute(SqlOperate operate)
-    {
-      this.Operate = operate;
-    }
   }
 
 

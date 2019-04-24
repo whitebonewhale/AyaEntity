@@ -47,7 +47,7 @@ namespace AyaEntity.Tests
         case "GetEntity:GetMaxIdEntity":
           string tn = SqlAttribute.GetTableName(this.entityType);
           return this.selectSql
-                  .Select(SqlAttribute.GetColumns(this.entityType))
+                  .Select(SqlAttribute.GetSelectColumns(this.entityType))
                   .From(tn)
                   .Where("Id=("
                   + new MysqlSelectStatement()

@@ -29,20 +29,25 @@ namespace AyaEntity.DataUtils
     /// 获取实体所有列名（公开属性）
     /// </summary>
     /// <returns></returns>
-    public static string[] GetColumns(Type entity)
+    public static string[] GetSelectColumns(Type entity)
     {
-      return Array.ConvertAll(entity.GetProperties(), mbox =>
+      List<string> names = new List<string>();
+      foreach (PropertyInfo mbox in entity.GetProperties())
       {
-        ColumnNameAttribute column = mbox.GetCustomAttribute<ColumnNameAttribute>();
-        if (column != null)
+        if (mbox.GetCustomAttribute<NotSelectAttribute>() == null)
         {
-          return column.ColumnName + " as " + mbox.Name;
+          ColumnNameAttribute column = mbox.GetCustomAttribute<ColumnNameAttribute>();
+          if (column != null)
+          {
+            names.Add(column.ColumnName + " as " + mbox.Name);
+          }
+          else
+          {
+            names.Add(mbox.Name);
+          }
         }
-        else
-        {
-          return mbox.Name;
-        }
-      });
+      }
+      return names.ToArray();
     }
 
     /// <summary>

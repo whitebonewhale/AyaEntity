@@ -26,10 +26,10 @@ namespace AyaEntity.SqlServices
       switch (funcName)
       {
         case "GetEntity":
-          sql = this.Select(conditionParameters).Select(SqlAttribute.GetColumns(this.entityType)).Limit(1);
+          sql = this.Select(conditionParameters).Select(SqlAttribute.GetSelectColumns(this.entityType)).Limit(1);
           break;
         case "GetEntityList":
-          sql = this.Select(conditionParameters).Select(SqlAttribute.GetColumns(this.entityType));
+          sql = this.Select(conditionParameters).Select(SqlAttribute.GetSelectColumns(this.entityType));
           break;
         case "Update":
           sql = this.Update(conditionParameters);

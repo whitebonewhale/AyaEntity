@@ -29,7 +29,24 @@ namespace AyaEntity.Tests
     public byte State { get; set; }
   }
 
+  [TableName("blog_article")]
+  class Article_NotSelect
+  {
 
+    [PrimaryKey]
+    [IdentityKey]
+    [ColumnName("id")]
+    public int Id { get; set; }
+
+    [NotSelect]
+    [ColumnName("article_name")]
+    public string Name { get; set; }
+
+    [ColumnName("article_title")]
+    public string Title { get; set; }
+    [ColumnName("state")]
+    public byte State { get; set; }
+  }
   /// <summary>
   /// 解除掉此注释，配置自己的测试数据库
   /// </summary>
@@ -59,7 +76,15 @@ namespace AyaEntity.Tests
 
 
     }
-
+    /// <summary>
+    /// 测试not select 特性
+    /// </summary>
+    [TestMethod]
+    public void TestNotSelect()
+    {
+      IEnumerable<Article_NotSelect > list = this.manage.GetEntityList<Article_NotSelect>();
+      Assert.IsTrue(list.All(m => m.Name == null));
+    }
     /// <summary>
     /// 测试获取entity
     /// </summary>
@@ -77,14 +102,6 @@ namespace AyaEntity.Tests
       Assert.IsTrue(article.Name.Equals("3 insert list 3"), "2");
 
     }
-
-
-    [TestMethod]
-    public void test()
-    {
-      string sql = "";
-    }
-
     /// <summary>
     /// 测试获取list entity
     /// </summary>
@@ -213,7 +230,7 @@ namespace AyaEntity.Tests
       // 执行自定义sql，模糊匹配，获取一个实体
       Article artile = this.manage.ExcuteCustomGet<Article>(
         new MysqlSelectStatement()
-            .Select(SqlAttribute.GetColumns(typeof(Article)))
+            .Select(SqlAttribute.GetSelectColumns(typeof(Article)))
             .Where(new { name = a.Name.Substring(0,2)+"%" }, "article_name like @name")
             .From(SqlAttribute.GetTableName(typeof(Article)))
         );
