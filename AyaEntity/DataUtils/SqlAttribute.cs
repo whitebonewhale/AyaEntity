@@ -29,7 +29,7 @@ namespace AyaEntity.DataUtils
     /// 获取实体所有列名（公开属性）
     /// </summary>
     /// <returns></returns>
-    public static string[] GetSelectColumns(Type entity)
+    public static string[] GetSelectColumns(Type entity, params string[] customs)
     {
       List<string> names = new List<string>();
       foreach (PropertyInfo mbox in entity.GetProperties())
@@ -46,6 +46,10 @@ namespace AyaEntity.DataUtils
             names.Add(mbox.Name);
           }
         }
+      }
+      if (customs != null && customs.Length > 0)
+      {
+        names.AddRange(customs);
       }
       return names.ToArray();
     }
