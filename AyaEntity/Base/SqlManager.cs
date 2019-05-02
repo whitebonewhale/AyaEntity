@@ -18,7 +18,8 @@ namespace AyaEntity.Base
   public class StatementOption
   {
     public string CurrentServiceKey;
-    public Dictionary<string,StatementService> servicesPool;
+    public Dictionary<string, StatementService> servicesPool;
+    public bool UseOne = false;
     // service调用方法
     public string ServiceMethod;
   }
@@ -40,7 +41,11 @@ namespace AyaEntity.Base
 
     private string GetSqlString(ISqlStatementToSql sql)
     {
-      string str =  sql.ToSql();
+      string str = sql.ToSql();
+      if (this.serviceOption.UseOne)
+      {
+        this.UseServiceDefault();
+      }
       return str;
     }
 
@@ -119,10 +124,11 @@ namespace AyaEntity.Base
       action(this.serviceOption);
       return this;
     }
-    public SqlManager UseService(string key, string method)
+    public SqlManager UseService(string key, string method, bool useOne = true)
     {
       this.serviceOption.CurrentServiceKey = key;
       this.serviceOption.ServiceMethod = method;
+      this.serviceOption.UseOne = useOne;
       return this;
     }
 
@@ -179,7 +185,7 @@ namespace AyaEntity.Base
     {
       Type type = typeof(TEntity);
       ISqlStatementToSql sql = this.currentService
-                              .Config("Get",type,parameters)
+                              .Config("Get", type, parameters)
                               .Where(whereCondition);
       return this.Connection.QueryFirstOrDefault<TOutput>(this.GetSqlString(sql), sql.GetParameters());
     }
@@ -194,7 +200,7 @@ namespace AyaEntity.Base
     {
       Type type = typeof(TEntity);
       ISqlStatementToSql sql = this.currentService
-                              .Config("GetEntity",type,parameters)
+                              .Config("GetEntity", type, parameters)
                               .Where(whereCondition);
       return this.Connection.QueryFirstOrDefault<TEntity>(this.GetSqlString(sql), sql.GetParameters());
     }
@@ -213,14 +219,14 @@ namespace AyaEntity.Base
 
       Type type = typeof(TEntity);
       ISqlStatementToSql sql = this.currentService
-                              .Config("GetPaging",type,parameters)
+                              .Config("GetPaging", type, parameters)
                               .Where(whereCondition);
 
       result.Rows = this.Connection.Query<TOutput>(this.GetSqlString(sql), sql.GetParameters());
       if (total)
       {
         ISqlStatementToSql t_sql = this.currentService
-                              .Config("GetPaging:Total",type,parameters)
+                              .Config("GetPaging:Total", type, parameters)
                               .Where(whereCondition);
         result.Total = this.Connection.QueryFirst<int>(t_sql.ToSql());
       }
@@ -240,7 +246,7 @@ namespace AyaEntity.Base
     {
       Type type = typeof(TEntity);
       ISqlStatementToSql sql = this.currentService
-                              .Config("GetList",type,parameters)
+                              .Config("GetList", type, parameters)
                               .Where(whereCondition);
       return this.Connection.Query<TOutput>(this.GetSqlString(sql), sql.GetParameters());
     }
@@ -257,7 +263,7 @@ namespace AyaEntity.Base
     {
       Type type = typeof(TEntity);
       ISqlStatementToSql sql = this.currentService
-                              .Config("GetEntityList",type,parameters)
+                              .Config("GetEntityList", type, parameters)
                               .Where(whereCondition);
       return this.Connection.Query<TEntity>(this.GetSqlString(sql), sql.GetParameters());
     }
@@ -277,7 +283,7 @@ namespace AyaEntity.Base
     {
       Type type = typeof(TableEntity);
       ISqlStatementToSql sql = this.currentService
-                              .Config("Delete",type,parameters)
+                              .Config("Delete", type, parameters)
                               .Where(whereCondition);
       return this.Connection.Execute(this.GetSqlString(sql), sql.GetParameters());
 
@@ -292,7 +298,7 @@ namespace AyaEntity.Base
     {
       Type type = typeof(TableEntity);
       ISqlStatementToSql sql = this.currentService
-                              .Config("Update",type,updateEntity)
+                              .Config("Update", type, updateEntity)
                               .UpdateSetColumns(setColumns)
                               .Where(whereCondition);
       return this.Connection.Execute(this.GetSqlString(sql), sql.GetParameters());
@@ -310,7 +316,7 @@ namespace AyaEntity.Base
     {
       Type type = typeof(TableEntity);
       ISqlStatementToSql sql = this.currentService
-                              .Config("Insert",type,parameters);
+                              .Config("Insert", type, parameters);
       return this.Connection.Execute(this.GetSqlString(sql), sql.GetParameters());
     }
 
@@ -326,7 +332,7 @@ namespace AyaEntity.Base
     {
       Type type = typeof(TableEntity);
       ISqlStatementToSql sql = this.currentService
-                              .Config("InsertList",type,parameters);
+                              .Config("InsertList", type, parameters);
       return this.Connection.Execute(this.GetSqlString(sql), sql.GetParameters());
     }
 
