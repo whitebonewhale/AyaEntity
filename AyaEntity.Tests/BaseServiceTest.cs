@@ -72,7 +72,7 @@ namespace AyaEntity.Tests
 
       // 添加自定义sql service
       ArticleSqlService service = new ArticleSqlService();
-      this.manage.AddService("ArticleService", service);
+      this.manage.AddService(service);
 
 
     }
@@ -82,7 +82,7 @@ namespace AyaEntity.Tests
     [TestMethod]
     public void TestNotSelect()
     {
-      IEnumerable<Article_NotSelect > list = this.manage.GetEntityList<Article_NotSelect>();
+      IEnumerable<Article_NotSelect> list = this.manage.GetEntityList<Article_NotSelect>();
       Assert.IsTrue(list.All(m => m.Name == null));
     }
     /// <summary>
@@ -176,7 +176,7 @@ namespace AyaEntity.Tests
         Assert.IsTrue(ex.Message.Contains("1=1"), "不安全的删除");
 
         // 测试删除所有，手动加上参数，起一个确认删除所有的功能
-        IEnumerable<Article> list= this.manage.GetEntityList<Article>();
+        IEnumerable<Article> list = this.manage.GetEntityList<Article>();
         row = this.manage.Delete<Article>(new Article { Id = 0 }, "1=1");
         Assert.IsTrue(list.Count() == row, "未能删除所有数据,原有数据行数:" + list.Count() + ",影响行数:" + row);
         // 删除完再把数据加回去
@@ -193,7 +193,7 @@ namespace AyaEntity.Tests
     public void TestDeleteMaxId()
     {
       // 使用自定义sql，查询最大id
-      int maxid = this.manage.UseService("ArticleService","GetMaxId").Get<int,Article>();
+      int maxid = this.manage.UseService<ArticleSqlService>("GetMaxId").Get<int, Article>();
       // 测试自定义参数
       int row = this.manage.UseServiceDefault().Delete<Article>(new Article { Id = maxid - 2 }, "id > @Id");
       Assert.IsTrue(row > 1 && row < 3, "自定义参数删除异常，影响行数:" + row);
@@ -207,11 +207,11 @@ namespace AyaEntity.Tests
       // 使用自定义sql，查询最大id
       this.manage.UseService(option =>
       {
-        option.CurrentServiceKey = "ArticleService";
+        option.CurrentServiceKey = typeof(ArticleSqlService);
         option.ServiceMethod = "GetMaxId";
       });
 
-      int maxid = this.manage.Get<int,Article>();
+      int maxid = this.manage.Get<int, Article>();
       Assert.IsTrue(maxid > 0, "获取maxid异常，maxid:" + maxid);
       this.manage.UseServiceDefault();
     }
@@ -225,13 +225,13 @@ namespace AyaEntity.Tests
     {
 
       // 使用自定义sql，查询最大id
-      int maxid = this.manage.UseService("ArticleService","GetMaxId").Get<int,Article>();
+      int maxid = this.manage.UseService<ArticleSqlService>("GetMaxId").Get<int, Article>();
       Article a = this.manage.UseServiceDefault().GetEntity<Article>(new Article { Id = maxid });
       // 执行自定义sql，模糊匹配，获取一个实体
       Article artile = this.manage.ExcuteCustomGet<Article>(
         new MysqlSelectStatement()
             .Select(SqlAttribute.GetSelectColumns(typeof(Article)))
-            .Where(new { name = a.Name.Substring(0,2)+"%" }, "article_name like @name")
+            .Where(new { name = a.Name.Substring(0, 2) + "%" }, "article_name like @name")
             .From(SqlAttribute.GetTableName(typeof(Article)))
         );
       Assert.IsTrue(artile.Name.Equals(a.Name), "模糊查询匹配likeme失败");
@@ -246,12 +246,12 @@ namespace AyaEntity.Tests
     {
 
       // 执行自定义sql： 分组查询 获取字典
-      Dictionary<string,string> d = this.manage.ExcuteCustomGetList<KeyValuePair<string,string>>(
+      Dictionary<string, string> d = this.manage.ExcuteCustomGetList<KeyValuePair<string, string>>(
         new MysqlSelectStatement()
-            .Select("count(*) as `Value`","article_name as `Key`")
+            .Select("count(*) as `Value`", "article_name as `Key`")
             .Group("article_name")
             .From(SqlAttribute.GetTableName(typeof(Article)))
-       ).ToDictionary(m=>m.Key,m=>m.Value);
+       ).ToDictionary(m => m.Key, m => m.Value);
       Assert.IsTrue(d.Count > 0);
     }
 
@@ -261,11 +261,11 @@ namespace AyaEntity.Tests
     [TestMethod]
     public void TestUpdate()
     {
-      Article max = this.manage.UseService("ArticleService","GetMaxIdEntity").GetEntity<Article>();
+      Article max = this.manage.UseService<ArticleSqlService>("GetMaxIdEntity").GetEntity<Article>();
       // 默认按照主键id更新数据
       string name = "update max name";
-      int row = this.manage.UseServiceDefault().Update<Article>(new Article { Name = name ,Id = max.Id });
-      Article a= this.manage.GetEntity<Article>(new { id = max.Id });
+      int row = this.manage.UseServiceDefault().Update<Article>(new Article { Name = name, Id = max.Id });
+      Article a = this.manage.GetEntity<Article>(new { id = max.Id });
       Assert.AreEqual(a.Name, name);
 
     }
@@ -277,10 +277,10 @@ namespace AyaEntity.Tests
     [TestMethod]
     public void TestUpdateCustom()
     {
-      Article max = this.manage.UseService("ArticleService","GetMaxIdEntity").GetEntity<Article>();
+      Article max = this.manage.UseService<ArticleSqlService>("GetMaxIdEntity").GetEntity<Article>();
       // 默认按照主键id更新数据
       string title = "update title";
-      int row = this.manage.UseServiceDefault().Update<Article>(new { Name = max.Name ,Title=title,Id=max.Id },"article_name=@Name AND id=@Id","article_title=@Title");
+      int row = this.manage.UseServiceDefault().Update<Article>(new { Name = max.Name, Title = title, Id = max.Id }, "article_name=@Name AND id=@Id", "article_title=@Title");
 
       Assert.AreEqual(row, 1);
 
@@ -296,8 +296,8 @@ namespace AyaEntity.Tests
       try
       {
         // 默认按照主键id更新数据
-        Article max = this.manage.UseService("ArticleService", "GetMaxIdEntity").GetEntity<Article>();
-        int row = this.manage.UseServiceDefault().Update<Article>(new Article { Name = "123" ,Id =0 });
+        Article max = this.manage.UseService<ArticleSqlService>("GetMaxIdEntity").GetEntity<Article>();
+        int row = this.manage.UseServiceDefault().Update<Article>(new Article { Name = "123", Id = 0 });
       }
       catch (Exception ex)
       {

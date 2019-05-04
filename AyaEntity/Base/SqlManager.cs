@@ -98,7 +98,7 @@ namespace AyaEntity.Base
     /// <param name="key"></param>
     /// <param name="service"></param>
     /// <returns></returns>
-    public SqlManager AddService<T>(StatementService service) where T : StatementService
+    public SqlManager AddService<T>(T service) where T : StatementService
     {
       // 参数不允许null
       if (service == null)
