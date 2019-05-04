@@ -17,9 +17,8 @@ namespace AyaEntity.Base
   /// </summary>
   public class StatementOption
   {
-    public string CurrentServiceKey;
-    public Dictionary<string, StatementService> servicesPool;
-    public bool UseOne = false;
+    public Type CurrentServiceKey;
+    public Dictionary<Type, StatementService> servicesPool;
     // service调用方法
     public string ServiceMethod;
   }
@@ -32,7 +31,7 @@ namespace AyaEntity.Base
   public class SqlManager
   {
 
-    public Dictionary<string, StatementService> ServicePool => this.serviceOption.servicesPool;
+    public Dictionary<Type, StatementService> ServicePool => this.serviceOption.servicesPool;
 
     /// <summary>
     /// service option 结构
@@ -42,10 +41,6 @@ namespace AyaEntity.Base
     private string GetSqlString(ISqlStatementToSql sql)
     {
       string str = sql.ToSql();
-      if (this.serviceOption.UseOne)
-      {
-        this.UseServiceDefault();
-      }
       return str;
     }
 
@@ -87,13 +82,13 @@ namespace AyaEntity.Base
     {
       this.ConnectionString = conn;
       this.Connection = new MySqlConnection(conn);
-      this.serviceOption.servicesPool = new Dictionary<string, StatementService>();
+      this.serviceOption.servicesPool = new Dictionary<Type, StatementService>();
       if (defaultService == null)
       {
         defaultService = new BaseStatementService();
       }
-      this.serviceOption.CurrentServiceKey = "default";
-      this.serviceOption.servicesPool.Add("default", defaultService);
+      this.serviceOption.CurrentServiceKey = typeof(BaseStatementService);
+      this.serviceOption.servicesPool.Add(this.serviceOption.CurrentServiceKey, defaultService);
     }
 
 
@@ -103,14 +98,14 @@ namespace AyaEntity.Base
     /// <param name="key"></param>
     /// <param name="service"></param>
     /// <returns></returns>
-    public SqlManager AddService(string key, StatementService service)
+    public SqlManager AddService<T>(StatementService service) where T : StatementService
     {
       // 参数不允许null
       if (service == null)
       {
         throw new ArgumentNullException("service");
       }
-      this.serviceOption.servicesPool.Add(key, service);
+      this.serviceOption.servicesPool.Add(typeof(T), service);
       return this;
     }
 
@@ -124,17 +119,16 @@ namespace AyaEntity.Base
       action(this.serviceOption);
       return this;
     }
-    public SqlManager UseService(string key, string method, bool useOne = true)
+    public SqlManager UseService<T>(string method) where T : StatementService
     {
-      this.serviceOption.CurrentServiceKey = key;
+      this.serviceOption.CurrentServiceKey = typeof(T);
       this.serviceOption.ServiceMethod = method;
-      this.serviceOption.UseOne = useOne;
       return this;
     }
 
     public SqlManager UseServiceDefault()
     {
-      this.serviceOption.CurrentServiceKey = "default";
+      this.serviceOption.CurrentServiceKey = typeof(BaseStatementService);
       this.serviceOption.ServiceMethod = string.Empty;
       return this;
     }

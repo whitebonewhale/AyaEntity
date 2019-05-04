@@ -64,10 +64,10 @@ namespace AyaEntity.DataUtils
     public static string GetWhereCondition(object conditionParam, ConditionOpertor conditionOpertor)
     {
       // TODO:丑陋的代码，这里将来肯定要进行优化，暂时没有想到好办法
-      IEnumerable<PropertyInfo> fields = conditionParam.GetType().GetProperties().Where(m=>
+      IEnumerable<PropertyInfo> fields = conditionParam.GetType().GetProperties().Where(m =>
       {
         object value = m.GetValue(conditionParam);
-        if(ValueVerify(value,m.PropertyType))
+        if (ValueVerify(value, m.PropertyType))
         {
           return false;
         }
@@ -75,9 +75,9 @@ namespace AyaEntity.DataUtils
       });
       return fields.Join(" " + conditionOpertor.ToString() + " ", m =>
       {
-        // 对属性值进行自定义判断，决定是否拼接进sql where语句中
-        ColumnNameAttribute column = m.GetCustomAttribute<ColumnNameAttribute>();
-        string cName = (column != null) ?column.ColumnName:m.Name;
+              // 对属性值进行自定义判断，决定是否拼接进sql where语句中
+              ColumnNameAttribute column = m.GetCustomAttribute<ColumnNameAttribute>();
+        string cName = (column != null) ? column.ColumnName : m.Name;
         if (typeof(IEnumerable<object>).IsAssignableFrom(m.PropertyType))
         {
           return cName + " in @" + m.Name;
@@ -167,7 +167,7 @@ namespace AyaEntity.DataUtils
     public static Dictionary<string, string> GetInsertCoulmn(Type entityType)
     {
 
-      Dictionary<string,string>  results = new Dictionary<string,string> ();
+      Dictionary<string, string> results = new Dictionary<string, string>();
       foreach (var mbox in entityType.GetProperties())
       {
         // 非自增列
