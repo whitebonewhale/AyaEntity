@@ -19,6 +19,7 @@ namespace AyaEntity.Base
   {
     public Type CurrentServiceKey;
     public Dictionary<Type, StatementService> servicesPool;
+    public bool UseOne = true;
     // service调用方法
     public string ServiceMethod;
   }
@@ -30,6 +31,7 @@ namespace AyaEntity.Base
   /// </summary>
   public class SqlManager
   {
+    public static Type DefaultServiceType = typeof(BaseStatementService);
 
     public Dictionary<Type, StatementService> ServicePool => this.serviceOption.servicesPool;
 
@@ -41,6 +43,10 @@ namespace AyaEntity.Base
     private string GetSqlString(ISqlStatementToSql sql)
     {
       string str = sql.ToSql();
+      if (this.serviceOption.UseOne && SqlManager.DefaultServiceType == this.serviceOption.CurrentServiceKey)
+      {
+        this.UseServiceDefault();
+      }
       return str;
     }
 
