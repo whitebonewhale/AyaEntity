@@ -1,5 +1,6 @@
-﻿using AyaEntity.DataUtils;
-using AyaEntity.SqlServices;
+﻿using AyaEntity.Command;
+using AyaEntity.DataUtils;
+using AyaEntity.Services;
 using AyaEntity.Statement;
 using Dapper;
 using MySql.Data.MySqlClient;
@@ -25,45 +26,18 @@ namespace AyaEntity.Base
   }
 
   /// <summary>
-  /// 配置项
-  /// </summary>
-  public class StatementOption
-  {
-    public Type CurrentServiceKey;
-    public Dictionary<Type, IStatementService> servicesPool;
-    public bool UseOne = true;
-    // service调用方法
-    public Enum MethodEnum;
-  }
-
-  /// <summary>
   /// SQLDAO 数据交互类，
   /// 角色：兼职sql语句管理者（控制sql建造者）
   /// </summary>
   public class SqlManager
   {
-    public static Type DefaultServiceType = typeof(BaseStatementService);
-    /// <summary>
-    /// service option 结构
-    /// </summary>
-    protected StatementOption serviceOption = new StatementOption();
 
-    /// <summary>
-    /// 根据具体业务需求生成sql语句
-    /// </summary>
-
-    protected IStatementService GetService<T>()
-    {
-      return this.serviceOption.servicesPool[typeof(T)];
-    }
-
-
-
+    public Type CurrentServiceKey;
+    public Dictionary<Type, DBService> servicesPool;
     /// <summary>
     /// 连接字符串
     /// </summary>
     public string ConnectionString { get; }
-
     /// <summary>
     /// 连接对象
     /// </summary>
@@ -77,17 +51,16 @@ namespace AyaEntity.Base
     /// </summary>
     /// <param name="conn"></param>
 
-    public SqlManager(string conn, IStatementService defaultService = null)
+    public SqlManager(string conn, DBService defaultService = null)
     {
-      this.ConnectionString = conn;
-      this.Connection = new MySqlConnection(conn);
-      this.serviceOption.servicesPool = new Dictionary<Type, IStatementService>();
+      ConnectionString = conn;
+      Connection = new MySqlConnection(conn);
+      servicesPool = new Dictionary<Type, DBService>();
       if (defaultService == null)
       {
-        defaultService = new BaseStatementService();
+        defaultService = new DBService(Connection);
       }
-      this.serviceOption.CurrentServiceKey = typeof(BaseStatementService);
-      this.serviceOption.servicesPool.Add(this.serviceOption.CurrentServiceKey, defaultService);
+      this.servicesPool.Add(typeof(DBService), defaultService);
     }
 
 
@@ -97,169 +70,26 @@ namespace AyaEntity.Base
     /// <param name="key"></param>
     /// <param name="service"></param>
     /// <returns></returns>
-    public SqlManager AddService<T>(T service) where T : IStatementService
+    public SqlManager AddService<T>() where T : DBService
     {
+      T service = (T)Activator.CreateInstance(typeof(T), Connection);
       // 参数不允许null
       if (service == null)
       {
         throw new ArgumentNullException("service");
       }
-      this.serviceOption.servicesPool.Add(typeof(T), service);
-      return this;
-    }
-
-    /// <summary>
-    /// 设置使用sql语句构造器，用以在运行时动态的生成不同类型的sql
-    /// </summary>
-    /// <param name="service"></param>
-    /// <returns></returns>
-    public SqlManager UseService(Action<StatementOption> action)
-    {
-      action(this.serviceOption);
-      return this;
-    }
-    public SqlManager UseService(Enum method)
-    {
-      this.serviceOption.MethodEnum = method;
+      this.servicesPool.Add(typeof(T), service);
       return this;
     }
 
 
     /// <summary>
-    /// 执行自定义Sql 获取一个实体
+    /// 根据具体业务需求生成sql语句
     /// </summary>
-    /// <typeparam name="TResult">实体类</typeparam>
-    /// <param name="sql"></param>
-    /// <returns></returns>
-    public TOutput QueryFirstCustomGet<TOutput>(ISqlStatementToSql sql)
+    public T UseService<T>() where T : DBService
     {
-      return this.Connection.QueryFirstOrDefault<TOutput>(sql.ToSql(), sql.GetParameters());
+      return (T)this.servicesPool[typeof(T)];
     }
-
-    /// <summary>
-    /// 执行自定义Sql 获取列表数据
-    /// </summary>
-    /// <typeparam name="TResult">实体类</typeparam>
-    /// <param name="sql"></param>
-    /// <returns></returns>
-    public IEnumerable<TOutput> QueryCustomGetList<TOutput>(ISqlStatementToSql sql)
-    {
-      return this.Connection.Query<TOutput>(sql.ToSql(), sql.GetParameters());
-    }
-
-
-
-    /// <summary>
-    /// 自定义执行sql语句，返回影响行数或自定义整数结果（例如自增id）
-    /// </summary>
-    /// <typeparam name="TableEntity"></typeparam>
-    /// <param name="sql"></param>
-    /// <returns></returns>
-    public int ExcuteCustomExcute<TableEntity>(ISqlStatementToSql sql)
-    {
-      return this.Connection.Execute(sql.ToSql(), sql.GetParameters());
-    }
-
-
-
-    public TOutput Get<TOutput, TEntity>(object parameters = null)
-    {
-      return this.Get<BaseStatementService, TOutput, TEntity>(parameters);
-    }
-
-    /// <summary>
-    /// 获取一个自定义类型
-    /// </summary>
-    /// <typeparam name="TOutput"></typeparam>
-    /// <typeparam name="TEntity"></typeparam>
-    /// <param name="parameters"></param>
-    /// <param name="whereCondition"></param>
-    /// <returns></returns>
-    public TOutput Get<TService, TOutput, TEntity>(object parameters = null, string whereCondition = null)
-    {
-      Type type = typeof(TEntity);
-      ISqlStatementToSql sql = this.GetService<TService>()
-                                .Config(type, this.serviceOption.MethodEnum)
-                                .GetSql(parameters)
-                                .Where(whereCondition);
-      return this.Connection.QueryFirstOrDefault<TOutput>(sql.ToSql(), sql.GetParameters());
-    }
-
-    /// <summary>
-    /// 获取一个实体
-    /// </summary>
-    /// <typeparam name="TResult">实体类</typeparam>
-    /// <param name="sql"></param>
-    /// <returns></returns>
-    public TEntity GetEntity<TEntity>(object parameters = null, string whereCondition = null)
-    {
-      return this.GetEntity<BaseStatementService, TEntity>(parameters, whereCondition);
-    }
-
-    /// <summary>
-    /// 获取一个实体
-    /// </summary>
-    /// <typeparam name="TResult">实体类</typeparam>
-    /// <param name="sql"></param>
-    /// <returns></returns>
-    public TEntity GetEntity<TService, TEntity>(object parameters = null, string whereCondition = null)
-    {
-      Type type = typeof(TEntity);
-      ISqlStatementToSql sql = this.GetService<TService>()
-                                .Config(type, this.serviceOption.MethodEnum)
-                                .GetEntitySql(parameters)
-                                .Where(whereCondition);
-      return this.Connection.QueryFirstOrDefault<TEntity>(sql.ToSql(), sql.GetParameters());
-    }
-
-    /// <summary>
-    /// 获取一个自定义类型列表
-    /// </summary>
-    /// <typeparam name="TOutput"></typeparam>
-    /// <typeparam name="TEntity"></typeparam>
-    /// <param name="parameters"></param>
-    /// <param name="whereCondition"></param>
-    /// <returns></returns>
-    public IEnumerable<TOutput> GetList<TService, TOutput, TEntity>(object parameters = null, string whereCondition = null)
-    {
-      Type type = typeof(TEntity);
-      ISqlStatementToSql sql = this.GetService<TService>()
-                              .Config(type, this.serviceOption.MethodEnum)
-                              .GetListSql(parameters)
-                              .Where(whereCondition);
-      return this.Connection.Query<TOutput>(sql.ToSql(), sql.GetParameters());
-    }
-
-
-
-    /// <summary>
-    /// 获取一个列表
-    /// </summary>
-    /// <typeparam name="TEntity"></typeparam>
-    /// <returns></returns>
-    public IEnumerable<TEntity> GetEntityList<TEntity>(object parameters = null, string whereCondition = null)
-    {
-      return this.GetEntityList<BaseStatementService, TEntity>(parameters, whereCondition);
-    }
-
-
-    /// <summary>
-    /// 获取一个列表
-    /// </summary>
-    /// <typeparam name="TEntity"></typeparam>
-    /// <returns></returns>
-    public IEnumerable<TEntity> GetEntityList<TService, TEntity>(object parameters = null, string whereCondition = null)
-    {
-      Type type = typeof(TEntity);
-      ISqlStatementToSql sql = this.GetService<TService>()
-                              .Config(type, this.serviceOption.MethodEnum)
-                              .GetEntityListSql(parameters)
-                              .Where(whereCondition);
-      return this.Connection.Query<TEntity>(sql.ToSql(), sql.GetParameters());
-    }
-
-
-
 
     ///// <summary>
     ///// 分页获取一个自定义类型列表
@@ -274,7 +104,7 @@ namespace AyaEntity.Base
     //  PagingResult<TOutput> result = new PagingResult<TOutput>();
 
     //  Type type = typeof(TEntity);
-    //  ISqlStatementToSql sql = this.GetService<TService>()
+    //  ISqlStatementToSql sql =this.UseService<BaseStatementService>()
     //                          .Config("GetPaging", type, parameters)
     //                          .Where(whereCondition);
 
@@ -289,114 +119,6 @@ namespace AyaEntity.Base
     //  return result;
     //}
 
-    /// <summary>
-    /// 根据table泛型删除数据
-    /// </summary>
-    /// <typeparam name="TableEntity"></typeparam>
-    /// <param name="parameters"></param>
-    /// <returns></returns>
-    public int Delete<TableEntity>(object parameters, string whereCondition = null)
-    {
-      return this.Delete<BaseStatementService, TableEntity>(parameters, whereCondition);
-    }
-    /// <summary>
-    /// 根据table泛型删除数据
-    /// </summary>
-    /// <typeparam name="TableEntity"></typeparam>
-    /// <param name="parameters"></param>
-    /// <returns></returns>
-
-    public int Delete<TService, TableEntity>(object parameters, string whereCondition = null)
-    {
-      Type type = typeof(TableEntity);
-      ISqlStatementToSql sql = this.GetService<TService>()
-                              .Config(type, this.serviceOption.MethodEnum)
-                              .DeleteSql(parameters)
-                              .Where(whereCondition);
-      return this.Connection.Execute(sql.ToSql(), sql.GetParameters());
-
-    }
-
-    /// <summary>
-    /// 根据table泛型删除数据
-    /// </summary>
-    /// <typeparam name="TableEntity"></typeparam>
-    /// <param name="parameters"></param>
-    /// <returns></returns>
-    public int Update<TableEntity>(object parameters, string whereCondition = null)
-    {
-      return this.Update<BaseStatementService, TableEntity>(parameters, whereCondition);
-    }
-    /// <summary>
-    /// 根据table泛型更新数据
-    /// </summary>
-    /// <param name="updateEntity">复合参数（set字段 和 where条件字段 都在这个对象里）</param>
-    /// <returns></returns>
-    public int Update<TService, TableEntity>(object updateEntity, string whereCondition = null, params string[] setColumns)
-    {
-      Type type = typeof(TableEntity);
-      ISqlStatementToSql sql = this.GetService<TService>()
-                              .Config(type, this.serviceOption.MethodEnum)
-                              .UpdateSql(updateEntity)
-                              .UpdateSetColumns(setColumns)
-                              .Where(whereCondition);
-      return this.Connection.Execute(sql.ToSql(), sql.GetParameters());
-    }
-
-
-    /// <summary>
-    /// 根据泛型插入一条实体数据
-    /// </summary>
-    /// <typeparam name="TableEntity"></typeparam>
-    /// <param name="parameters"></param>
-    /// <returns></returns>
-    public int Insert<TableEntity>(TableEntity parameters)
-    {
-      return this.Insert<BaseStatementService, TableEntity>(parameters);
-    }
-
-    /// <summary>
-    /// 根据泛型插入一条实体数据
-    /// </summary>
-    /// <typeparam name="TableEntity"></typeparam>
-    /// <param name="parameters"></param>
-    /// <returns></returns>
-    public int Insert<TService, TableEntity>(TableEntity parameters)
-    {
-      Type type = typeof(TableEntity);
-      ISqlStatementToSql sql = this.GetService<TService>()
-                              .Config(type, this.serviceOption.MethodEnum)
-                              .InsertSql(parameters);
-      return this.Connection.Execute(sql.ToSql(), sql.GetParameters());
-    }
-
-    /// <summary>
-    /// 根据泛型插入一条实体数据
-    /// </summary>
-    /// <typeparam name="TableEntity"></typeparam>
-    /// <param name="parameters"></param>
-    /// <returns></returns>
-    public int InsertList<TableEntity>(IEnumerable<TableEntity> parameters)
-    {
-      return this.InsertList<BaseStatementService, TableEntity>(parameters);
-    }
-
-
-
-    /// <summary>
-    /// 根据泛型插入多条实体数据
-    /// </summary>
-    /// <typeparam name="TableEntity"></typeparam>
-    /// <param name="parameters"></param>
-    /// <returns></returns>
-    public int InsertList<TService, TableEntity>(IEnumerable<TableEntity> parameters)
-    {
-      Type type = typeof(TableEntity);
-      ISqlStatementToSql sql = this.GetService<TService>()
-                              .Config(type, this.serviceOption.MethodEnum)
-                              .InsertListSql(parameters);
-      return this.Connection.Execute(sql.ToSql(), sql.GetParameters());
-    }
 
 
 

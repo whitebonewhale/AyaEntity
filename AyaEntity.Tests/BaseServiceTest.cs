@@ -1,6 +1,7 @@
 using AyaEntity.Base;
+using AyaEntity.Command;
 using AyaEntity.DataUtils;
-using AyaEntity.SqlServices;
+using AyaEntity.Services;
 using AyaEntity.Statement;
 using Dapper;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -14,7 +15,7 @@ using System.Text;
 namespace AyaEntity.Tests
 {
   [TableName("blog_article")]
-  class Article
+  public class Article
   {
     [PrimaryKey]
     [IdentityKey]
@@ -64,6 +65,7 @@ namespace AyaEntity.Tests
   {
 
     private SqlManager manage;
+    private ArticleDBService articleService;
 
     public BaseServiceTest()
     {
@@ -72,10 +74,8 @@ namespace AyaEntity.Tests
       this.manage = new SqlManager($"Server={Config.server};Database={Config.dbName}; User={Config.username};Password={Config.pwd};charset=UTF8");
 
       // 添加自定义sql service
-      ArticleSqlService service = new ArticleSqlService();
-      this.manage.AddService(service);
-
-
+      this.manage.AddService<ArticleDBService>();
+      this.articleService = this.manage.UseService<ArticleDBService>();
     }
 
     /// <summary>
@@ -84,9 +84,12 @@ namespace AyaEntity.Tests
     [TestMethod]
     public void TestNotSelect()
     {
-      IEnumerable<Article_NotSelect> list = this.manage.GetEntityList<Article_NotSelect>();
+      IEnumerable<Article_NotSelect> list = articleService.GetEntityList<Article_NotSelect>();
       Assert.IsTrue(list.All(m => m.Name == null));
     }
+
+
+
     /// <summary>
     /// 测试获取entity
     /// </summary>
@@ -94,16 +97,18 @@ namespace AyaEntity.Tests
     public void TestGet()
     {
       //特性实体类参数，根据属性特性自动解析
-      Article article = this.manage.GetEntity<Article>(new Article { Name = "3 insert list 3" }
+      Article article = articleService.GetEntity<Article>(new Article { Name = "3 insert list 3" }
       );
       Assert.IsTrue(article.Name.Equals("3 insert list 3"), "1");
 
 
       // 测试非特性实体类参数，
-      article = this.manage.GetEntity<Article>(new { article_name = "3 insert list 3" });
+      article = articleService.GetEntity<Article>(new { article_name = "3 insert list 3" });
       Assert.IsTrue(article.Name.Equals("3 insert list 3"), "2");
 
     }
+
+
     /// <summary>
     /// 测试获取list entity
     /// </summary>
@@ -111,14 +116,14 @@ namespace AyaEntity.Tests
     public void TestGetList()
     {
       // 无条件获取所有
-      IEnumerable<Article> list = this.manage.GetEntityList<Article>();
+      IEnumerable<Article> list = articleService.GetEntityList<Article>();
       Assert.IsTrue(list.Count() > 0, "查询列表失败");
 
       // 简单条件
-      list = this.manage.GetEntityList<Article>();
+      list = articleService.GetEntityList<Article>();
       Assert.IsTrue(list.Count() > 0, "列表查询异常：简单条件");
       // 简单自定义条件
-      list = this.manage.GetEntityList<Article>(new { id = "%9%" }, "id like @id");
+      list = articleService.GetEntityList<Article>(new { id = "%9%" }, "id like @id");
       Assert.IsTrue(list.Count() > 0 && list.All(m => m.Id.ToString().Contains('9')), "%3%:查询列表失败");
 
     }
@@ -132,7 +137,7 @@ namespace AyaEntity.Tests
     public void TestInsert()
     {
       // 插入实体数据
-      int row = this.manage.Insert(new Article { Name = "test insert", Title = "测试插入数据" });
+      int row = articleService.Insert(new Article { Name = "test insert", Title = "测试插入数据" });
       Assert.IsTrue(row == 1, "插入单条数据错误，影响行数:" + row);
 
       // 插入多条实体数据
@@ -142,14 +147,14 @@ namespace AyaEntity.Tests
         list.Add(new Article { Name = i + " insert list " + i, Title = "测试插入数据 " + i });
       }
 
-      row = this.manage.InsertList(list);
+      row = articleService.InsertList(list);
       Assert.IsTrue(row == list.Count, "插入多条数据错误，影响行数:" + row);
     }
 
     //[TestMethod]
     //public void TestDeleteAll()
     //{
-    //  int row = this.manage.Delete<Article>(new Article { Id = 0 }, "1=1");
+    //  int row = articleService.Delete<Article>(new Article { Id = 0 }, "1=1");
     //  Assert.IsTrue(row > 0);
     //}
 
@@ -163,26 +168,26 @@ namespace AyaEntity.Tests
       //Assert.IsFalse(true, str);
 
       // 插入数据 已供删除
-      this.manage.Insert(new Article { Name = "temp delete ", Title = "测试插入数据" });
-      int row = this.manage.Delete<Article>(new Article { Name = "temp delete" });
+      articleService.Insert(new Article { Name = "temp delete ", Title = "测试插入数据" });
+      int row = articleService.Delete<Article>(new Article { Name = "temp delete" });
       Assert.IsTrue(row == 1, "删除数据失败，影响行数:" + row);
 
 
       try
       {
         // 测试空where条件，抛出异常，必须携带where参数，为了数据安全
-        this.manage.Delete<Article>(new Article { Id = 0 });
+        articleService.Delete<Article>(null);
       }
       catch (Exception ex)
       {
         Assert.IsTrue(ex.Message.Contains("1=1"), "不安全的删除");
 
         // 测试删除所有，手动加上参数，起一个确认删除所有的功能
-        IEnumerable<Article> list = this.manage.GetEntityList<Article>();
-        row = this.manage.Delete<Article>(new Article { Id = 0 }, "1=1");
+        IEnumerable<Article> list = articleService.GetEntityList<Article>();
+        row = articleService.Delete<Article>("1=1");
         Assert.IsTrue(list.Count() == row, "未能删除所有数据,原有数据行数:" + list.Count() + ",影响行数:" + row);
         // 删除完再把数据加回去
-        row = this.manage.InsertList(list);
+        row = articleService.InsertList(list);
         Assert.IsTrue(row == list.Count(), "插入多条数据错误，影响行数:" + row);
       }
     }
@@ -195,9 +200,9 @@ namespace AyaEntity.Tests
     public void TestDeleteMaxId()
     {
       // 使用自定义sql，查询最大id
-      int maxid = this.manage.UseService<ArticleSqlService>(ArticleMehtod.MaxId).Get<int, Article>();
+      int maxid = articleService.GetMaxId();
       // 测试自定义参数
-      int row = this.manage.UseServiceDefault().Delete<Article>(new Article { Id = maxid - 2 }, "id > @Id");
+      int row = articleService.Delete<Article>(new Article { Id = maxid - 2 }, "id > @Id");
       Assert.IsTrue(row > 1 && row < 3, "自定义参数删除异常，影响行数:" + row);
     }
 
@@ -206,16 +211,8 @@ namespace AyaEntity.Tests
     [TestMethod]
     public void TestGetMaxId()
     {
-      // 使用自定义sql，查询最大id
-      this.manage.UseService(option =>
-      {
-        option.CurrentServiceKey = typeof(ArticleSqlService);
-        option.MethodEnum = ArticleMehtod.MaxId;
-      });
-
-      int maxid = this.manage.Get<int, Article>();
+      int maxid = articleService.GetMaxId();
       Assert.IsTrue(maxid > 0, "获取maxid异常，maxid:" + maxid);
-      this.manage.UseServiceDefault();
     }
 
 
@@ -227,15 +224,12 @@ namespace AyaEntity.Tests
     {
 
       // 使用自定义sql，查询最大id
-      int maxid = this.manage.UseService<ArticleSqlService>("GetMaxId").Get<int, Article>();
-      Article a = this.manage.UseServiceDefault().GetEntity<Article>(new Article { Id = maxid });
+
+      int maxid = articleService.GetMaxId();
+      Article a = articleService.GetEntity<Article>(new Article { Id = maxid });
       // 执行自定义sql，模糊匹配，获取一个实体
-      Article artile = this.manage.QueryFirstCustomGet<Article>(
-        new MysqlSelectStatement()
-            .Select(SqlAttribute.GetSelectColumns(typeof(Article)))
-            .Where(new { name = a.Name.Substring(0, 2) + "%" }, "article_name like @name")
-            .From(SqlAttribute.GetTableName(typeof(Article)))
-        );
+      Article artile = articleService.LikeArticleName(a.Name);
+
       Assert.IsTrue(artile.Name.Equals(a.Name), "模糊查询匹配likeme失败");
 
     }
@@ -246,14 +240,8 @@ namespace AyaEntity.Tests
     [TestMethod]
     public void TestExcuteCustomToDict()
     {
-
       // 执行自定义sql： 分组查询 获取字典
-      Dictionary<string, string> d = this.manage.QueryCustomGetList<KeyValuePair<string, string>>(
-        new MysqlSelectStatement()
-            .Select("count(*) as `Value`", "article_name as `Key`")
-            .Group("article_name")
-            .From(SqlAttribute.GetTableName(typeof(Article)))
-       ).ToDictionary(m => m.Key, m => m.Value);
+      Dictionary<string, int> d = articleService.GetArticleDictionaryCounts();
       Assert.IsTrue(d.Count > 0);
     }
 
@@ -263,13 +251,12 @@ namespace AyaEntity.Tests
     [TestMethod]
     public void TestUpdate()
     {
-      Article max = this.manage.UseService(ArticleMehtod.MaxIdEntity).GetEntity<ArticleSqlService, Article>();
+      Article max = articleService.GetMaxIdArticle();
       // 默认按照主键id更新数据
       string name = "update max name";
-      int row = this.manage.Update<Article>(new Article { Name = name, Id = max.Id });
-      Article a = this.manage.GetEntity<Article>(new { id = max.Id });
+      int row = articleService.Update<Article>(new Article { Name = name, Id = max.Id });
+      Article a = articleService.GetEntity<Article>(new { id = max.Id });
       Assert.AreEqual(a.Name, name);
-
     }
 
 
@@ -279,10 +266,10 @@ namespace AyaEntity.Tests
     [TestMethod]
     public void TestUpdateCustom()
     {
-      Article max = this.manageGetEntity<Article>();
-      // 默认按照主键id更新数据
+      Article max = articleService.GetMaxIdArticle();
+      // 默认按照主键id更新数据 
       string title = "update title";
-      int row = this.manage.UseServiceDefault().Update<Article>(new { Name = max.Name, Title = title, Id = max.Id }, "article_name=@Name AND id=@Id", "article_title=@Title");
+      int row = articleService.Update<Article>(new { Name = max.Name, Title = title, Id = max.Id }, "article_name=@Name AND id=@Id", "article_title=@Title");
 
       Assert.AreEqual(row, 1);
 
@@ -298,8 +285,8 @@ namespace AyaEntity.Tests
       try
       {
         // 默认按照主键id更新数据
-        Article max = this.manage.UseService<ArticleSqlService>("GetMaxIdEntity").GetEntity<Article>();
-        int row = this.manage.UseServiceDefault().Update<Article>(new Article { Name = "123", Id = 0 });
+        Article max = articleService.GetMaxIdArticle();
+        int row = articleService.Update<Article>(new Article { Name = "123", Id = 0 });
       }
       catch (Exception ex)
       {

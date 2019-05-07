@@ -1,68 +1,75 @@
-﻿using AyaEntity.DataUtils;
-using AyaEntity.SqlServices;
+﻿using AyaEntity.Command;
+using AyaEntity.DataUtils;
+using AyaEntity.Services;
 using AyaEntity.Statement;
+using Dapper;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Text;
 
 namespace AyaEntity.Tests
 {
 
-  public enum ArticleMehtod
-  {
-    LikeName,
-    MaxId,
-    MaxIdEntity,
-    StateAdd
-  }
-
 
   /// <summary>
   /// Demo：文章 service自定义扩展
   /// </summary>
-  public class ArticleSqlService : BaseStatementService
+  public class ArticleDBService : DBService
   {
-
-    public override SqlStatement GetSql(object conditionParameters)
+    public ArticleDBService(IDbConnection conn) : base(conn)
     {
-      ArticleMehtod flag = (ArticleMehtod)method;
-      switch (flag)
-      {
-        case ArticleMehtod.LikeName:
-          return this.selectSql
-                  .Limit(1)
-                  .Where("article_name like @Name")
-                  .From(SqlAttribute.GetTableName(this.entityType));
+    }
 
-        case ArticleMehtod.MaxId:
-          return this.selectSql
-                  .Select("Max(id)")
-                  .Limit(1)
-                  .Where(conditionParameters)
-                  .From(SqlAttribute.GetTableName(this.entityType));
+    public int GetMaxId()
+    {
+      Type entityType = typeof(Article);
+      ISqlStatementToSql sql = CommandBuilder.BuildSelect(null, entityType)
+                                              .Select("Max(id)")
+                                              .From(SqlAttribute.GetTableName(entityType));
+      return Connection.QueryFirst<int>(sql.ToSql());
+    }
 
-        case ArticleMehtod.MaxIdEntity:
-          string tn = SqlAttribute.GetTableName(this.entityType);
-          return this.selectSql
-                  .Select(SqlAttribute.GetSelectColumns(this.entityType))
-                  .From(tn)
-                  .Where("Id=("
-                  + new MysqlSelectStatement()
-                        .Select("Max(id) as Id")
-                        .Limit(1)
-                        .Where(conditionParameters)
-                        .From(tn).ToSql()
-                  + ")");
 
-        case ArticleMehtod.StateAdd:
-          return this.updateSql
-                  .Set("state+=1")
-                  .Where(conditionParameters)
-                  .From(SqlAttribute.GetPrimaryColumn(this.entityType));
-        default:
-          throw new NotImplementedException("Method not implement:" + flag);
-      }
+    public Article GetMaxIdArticle()
+    {
+      Type entityType = typeof(Article);
+      string tn = SqlAttribute.GetTableName(entityType);
+      ISqlStatementToSql sql = CommandBuilder.BuildSelect(null, entityType)
+                                             .Select(SqlAttribute.GetSelectColumns(entityType))
+                                             .From(tn)
+                                             .Where("Id=("
+                                             + new MysqlSelectStatement()
+                                                   .Select("Max(id) as Id")
+                                                   .From(tn).ToSql()
+                                             + ")");
+      return Connection.QueryFirst<Article>(sql.ToSql());
+    }
+
+
+    public Article LikeArticleName(string name)
+    {
+      string sql = new MysqlSelectStatement()
+          .Select(SqlAttribute.GetSelectColumns(typeof(Article)))
+          .Where("article_name like @name")
+          .From(SqlAttribute.GetTableName(typeof(Article)))
+          .ToSql();
+
+      return this.Connection.QueryFirst<Article>(sql, new { name = name.Substring(0, 2) + "%" });
+
+
+    }
+
+
+    public Dictionary<string, int> GetArticleDictionaryCounts()
+    {
+      return this.Connection.Query<KeyValuePair<string, int>>(
+          new MysqlSelectStatement()
+              .Select("count(*) as `Value`", "article_name as `Key`")
+              .Group("article_name")
+              .From(SqlAttribute.GetTableName(typeof(Article))).ToSql()
+         ).ToDictionary(m => m.Key, m => m.Value);
     }
   }
 }
