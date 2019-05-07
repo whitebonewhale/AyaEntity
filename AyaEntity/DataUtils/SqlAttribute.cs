@@ -29,6 +29,38 @@ namespace AyaEntity.DataUtils
     /// 获取实体所有列名（公开属性）
     /// </summary>
     /// <returns></returns>
+    public static string[] GetSelectColumns(string alias, Type entity, params string[] customs)
+    {
+      List<string> names = new List<string>();
+      foreach (PropertyInfo mbox in entity.GetProperties())
+      {
+        if (mbox.GetCustomAttribute<NotSelectAttribute>() == null)
+        {
+          ColumnNameAttribute column = mbox.GetCustomAttribute<ColumnNameAttribute>();
+          if (column != null)
+          {
+            names.Add(alias + "." + column.ColumnName + " as " + mbox.Name);
+          }
+          else
+          {
+            names.Add(alias + "." + mbox.Name);
+          }
+        }
+      }
+      if (customs != null && customs.Length > 0)
+      {
+        names.AddRange(customs);
+      }
+      return names.ToArray();
+    }
+
+
+
+
+    /// <summary>
+    /// 获取实体所有列名（公开属性）
+    /// </summary>
+    /// <returns></returns>
     public static string[] GetSelectColumns(Type entity, params string[] customs)
     {
       List<string> names = new List<string>();
@@ -75,8 +107,8 @@ namespace AyaEntity.DataUtils
       });
       return fields.Join(" " + conditionOpertor.ToString() + " ", m =>
       {
-              // 对属性值进行自定义判断，决定是否拼接进sql where语句中
-              ColumnNameAttribute column = m.GetCustomAttribute<ColumnNameAttribute>();
+        // 对属性值进行自定义判断，决定是否拼接进sql where语句中
+        ColumnNameAttribute column = m.GetCustomAttribute<ColumnNameAttribute>();
         string cName = (column != null) ? column.ColumnName : m.Name;
         if (typeof(IEnumerable<object>).IsAssignableFrom(m.PropertyType))
         {
