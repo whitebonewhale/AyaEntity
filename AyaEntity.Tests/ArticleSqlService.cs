@@ -13,6 +13,22 @@ namespace AyaEntity.Tests
 {
 
 
+  //public class ArticleDBService : DBService
+  //{
+  //  public ArticleDBService(IDbConnection conn) : base(conn)
+  //  {
+  //  }
+
+  //  public Dictionary<string, int> GetArticleDictionaryCounts()
+  //  {
+  //    return this.Connection.Query<KeyValuePair<string, int>>(
+  //        new MysqlSelectStatement()
+  //            .Select("count(*) as `Value`", "article_name as `Key`")
+  //            .Group("article_name")
+  //            .From(SqlAttribute.GetTableName(typeof(Article))).ToSql()
+  //       ).ToDictionary(m => m.Key, m => m.Value);
+  //  }
+  //}
   /// <summary>
   /// Demo：文章 service自定义扩展
   /// </summary>

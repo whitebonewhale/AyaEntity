@@ -23,60 +23,21 @@ namespace AyaEntity.Services
       this.Connection = conn;
     }
 
-    /// <summary>
-    /// 执行自定义Sql 获取一个实体
-    /// </summary>
-    /// <typeparam name="TResult">实体类</typeparam>
-    /// <param name="sql"></param>
-    /// <returns></returns>
-    public TOutput QueryFirstCustomGet<TOutput>(ISqlStatementToSql sql)
-    {
-      return this.Connection.QueryFirstOrDefault<TOutput>(sql.ToSql(), sql.GetParameters());
-    }
-
-    /// <summary>
-    /// 执行自定义Sql 获取列表数据
-    /// </summary>
-    /// <typeparam name="TResult">实体类</typeparam>
-    /// <param name="sql"></param>
-    /// <returns></returns>
-    public IEnumerable<TOutput> QueryCustomGetList<TOutput>(ISqlStatementToSql sql)
-    {
-      return this.Connection.Query<TOutput>(sql.ToSql(), sql.GetParameters());
-    }
 
 
 
     /// <summary>
-    /// 自定义执行sql语句，返回影响行数或自定义整数结果（例如自增id）
+    /// 自定义执行sql语句
     /// </summary>
     /// <typeparam name="TableEntity"></typeparam>
     /// <param name="sql"></param>
     /// <returns></returns>
-    public int ExcuteCustomExcute<TableEntity>(ISqlStatementToSql sql)
+    public int Excute<TableEntity>(ISqlStatementToSql sql)
     {
       return this.Connection.Execute(sql.ToSql(), sql.GetParameters());
     }
 
 
-
-    /// <summary>
-    /// 获取一个自定义类型
-    /// </summary>
-    /// <typeparam name="TOutput"></typeparam>
-    /// <typeparam name="TEntity"></typeparam>
-    /// <param name="parameters"></param>
-    /// <param name="whereCondition"></param>
-    /// <returns></returns>
-    public TOutput Get<TOutput, TEntity>(object parameters = null, string whereCondition = null)
-    {
-      Type type = typeof(TEntity);
-      ISqlStatementToSql sql = CommandBuilder.BuildSelect(parameters, type)
-                                          .Select(SqlAttribute.GetSelectColumns(type))
-                                          .Limit(1)
-                                          .Where(whereCondition);
-      return this.Connection.QueryFirstOrDefault<TOutput>(sql.ToSql(), sql.GetParameters());
-    }
 
 
     /// <summary>
@@ -94,25 +55,6 @@ namespace AyaEntity.Services
                                           .Where(whereCondition);
       return this.Connection.QueryFirstOrDefault<TEntity>(sql.ToSql(), sql.GetParameters());
     }
-
-    /// <summary>
-    /// 获取一个自定义类型列表
-    /// </summary>
-    /// <typeparam name="TOutput"></typeparam>
-    /// <typeparam name="TEntity"></typeparam>
-    /// <param name="parameters"></param>
-    /// <param name="whereCondition"></param>
-    /// <returns></returns>
-    public IEnumerable<TOutput> GetList<TOutput, TEntity>(object parameters = null, string whereCondition = null)
-    {
-      Type type = typeof(TEntity);
-      ISqlStatementToSql sql = CommandBuilder.BuildSelect(parameters, type)
-                                          .Select(SqlAttribute.GetSelectColumns(type))
-                                          .Where(whereCondition);
-      return this.Connection.Query<TOutput>(sql.ToSql(), sql.GetParameters());
-    }
-
-
 
 
     /// <summary>
