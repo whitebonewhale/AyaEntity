@@ -60,9 +60,13 @@ namespace AyaEntity.Tests
   //  public const string dbName ="数据库名";
   //}
 
+
+
   [TestClass]
   public class BaseServiceTest
   {
+
+
 
     private SqlManager manage;
     private ArticleDBService articleService;
@@ -70,12 +74,17 @@ namespace AyaEntity.Tests
     public BaseServiceTest()
     {
 
-      // 初始化manage
-      this.manage = new SqlManager($"Server={Config.server};Database={Config.dbName}; User={Config.username};Password={Config.pwd};charset=UTF8");
+      // 使用连接字符串 初始化manage  
+      SqlManager manage = new SqlManager($"Server={Config.server};Database={Config.dbName}; User={Config.username};Password={Config.pwd};charset=UTF8");
+      // 使用默认db service
+      DBService dbService = this.manage.UseService<DBService>();
+      Article article = dbService.GetEntity<Article>(new Article { Id = 3 });
 
-      // 添加自定义sql service
+      // 添加自定义sql service 并使用
       this.manage.AddService<ArticleDBService>();
       this.articleService = this.manage.UseService<ArticleDBService>();
+      Article max = articleService.GetMaxIdArticle();
+
     }
 
     /// <summary>

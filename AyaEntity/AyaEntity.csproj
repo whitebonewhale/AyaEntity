@@ -6,11 +6,11 @@
     <RootNamespace>AyaEntity</RootNamespace>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Configurations>Debug;Release;Test</Configurations>
-    <Version>0.1.23</Version>
+    <Version>0.1.3</Version>
     <Authors>Kaakira</Authors>
     <Company>WhiteBoneWhale</Company>
-    <AssemblyVersion>0.0.1.23</AssemblyVersion>
-    <FileVersion>0.0.1.23</FileVersion>
+    <AssemblyVersion>0.0.1.3</AssemblyVersion>
+    <FileVersion>0.0.1.3</FileVersion>
     <Description>基于dapper的轻量简单的orm框架，实现简单及稍复杂的sql自动生成。
 可自定义扩展Sql service实现业务复杂sql。
 </Description>
