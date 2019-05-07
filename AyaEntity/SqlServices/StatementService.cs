@@ -4,6 +4,7 @@ using AyaEntity.Statement;
 using Dapper;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Text;
 
 namespace AyaEntity.SqlServices
@@ -11,34 +12,8 @@ namespace AyaEntity.SqlServices
 
 
 
-  public abstract class StatementService
+  public interface IStatementService
   {
-    // 获取执行的sql string
-    public SqlStatement GetExcuteSQLString(string funcName, Type type, object conditionParameters)
-    {
-      SqlStatement sql = this.Config(funcName,type,conditionParameters);
-      return sql;
-    }
-
-
-
-
-
-    /// <summary>
-    /// sql语句操作的表实体类类型
-    /// </summary>
-    protected Type entityType;
-
-
-
-
-
-    /// <summary>
-    /// 调用方法名称，用于自定义功能扩展
-    /// 根据此字段来进一步控制sql语句的生成
-    /// 简单理解为一个标识即可，
-    /// </summary>
-    protected string methodName;
 
 
     /// <summary>
@@ -48,31 +23,71 @@ namespace AyaEntity.SqlServices
     /// <param name="type">sql结果，实体类型</param>
     /// <param name="conditionParameters">sql 参数</param>
     /// <returns></returns>
-    public SqlStatement Config(string funcName, Type type, object conditionParameters)
-    {
-      this.entityType = type;
-      SqlStatement sql = this.CreateSql(funcName, conditionParameters);
-      return sql;
-    }
+    IStatementService Config(Type type, Enum method = null);
 
-    /// <summary>
-    /// 使用方法名
-    /// </summary>
-    /// <param name="methodName"></param>
-    public void UseMethod(string methodName)
-    {
-      this.methodName = methodName;
-    }
 
     /// <summary>
     /// 子类重写具体逻辑，生成sql语句
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    protected abstract SqlStatement CreateSql(string funcName, object conditionParameters);
+    SqlStatement GetSql(object conditionParameters);
+
+
+    /// <summary>
+    /// 子类重写具体逻辑，生成sql语句
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    SqlStatement GetEntitySql(object conditionParameters);
+
+
+    /// <summary>
+    /// 子类重写具体逻辑，生成sql语句
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    SqlStatement GetListSql(object conditionParameters);
+
+
+    /// <summary>
+    /// 子类重写具体逻辑，生成sql语句
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    SqlStatement GetEntityListSql(object conditionParameters);
+
+
+    /// <summary>
+    /// 子类重写具体逻辑，生成sql语句
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    SqlStatement UpdateSql(object conditionParameters);
+
+
+    /// <summary>
+    /// 子类重写具体逻辑，生成sql语句
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    SqlStatement DeleteSql(object conditionParameters);
 
 
 
+    /// <summary>
+    /// 子类重写具体逻辑，生成sql语句
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    SqlStatement InsertSql(object conditionParameters);
+
+    /// <summary>
+    /// 子类重写具体逻辑，生成sql语句
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    SqlStatement InsertListSql(object conditionParameters);
 
   }
 

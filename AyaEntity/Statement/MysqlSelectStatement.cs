@@ -17,9 +17,10 @@ namespace AyaEntity.Statement
     public SortType sortType = SortType.DESC;
     public string sortField;
     protected string[] groupFields;
-
     private int limitSize;
     private int limitOffset;
+
+    private List<string> joinSelects = new List<string>();
 
 
     /// <summary>
@@ -33,6 +34,12 @@ namespace AyaEntity.Statement
       buffer.Append("SELECT ").Append((this.columns == null) ? "*" : this.columns.Join(",", m => m));
       // from
       buffer.Append(" FROM ").Append(this.tableName);
+
+      // join
+      if (this.joinSelects.Count > 0)
+      {
+        buffer.Append(" ").Append(string.Join(" ", joinSelects));
+      }
       // where
       if (!string.IsNullOrEmpty(this.getWhereCondition))
       {
@@ -71,9 +78,17 @@ namespace AyaEntity.Statement
 
 
 
+    public MysqlSelectStatement Join(string joinSelect)
+    {
+      this.joinSelects.Add(joinSelect);
+      return this;
+    }
+
+
 
     public MysqlSelectStatement Select(params string[] columns)
     {
+      this.joinSelects.Clear();
       this.columns = columns;
       return this;
     }

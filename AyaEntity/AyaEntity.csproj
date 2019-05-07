@@ -20,6 +20,7 @@
     <RepositoryType>github</RepositoryType>
     <PackageReleaseNotes>补充包说明信息</PackageReleaseNotes>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

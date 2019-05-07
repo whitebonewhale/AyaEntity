@@ -2,51 +2,82 @@
 using AyaEntity.Statement;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Text;
 
 namespace AyaEntity.SqlServices
 {
-  public class BaseStatementService : StatementService
+  public class BaseStatementService : IStatementService
   {
+
+    /// <summary>
+    /// 方法枚举（整型）
+    /// </summary>
+    protected Enum method;
+
+    /// <summary>
+    /// sql语句操作的表实体类类型
+    /// </summary>
+    protected Type entityType;
 
     /// <summary>
     /// 优化：只生成一次
     /// </summary>
-    private MysqlSelectStatement selectSql;
-    private UpdateStatement updateSql;
-    private DeleteStatement deleteSql;
-    private InsertStatement insertSql;
+    protected MysqlSelectStatement selectSql;
+    protected UpdateStatement updateSql;
+    protected DeleteStatement deleteSql;
+    protected InsertStatement insertSql;
 
 
 
-    protected override SqlStatement CreateSql(string funcName, object conditionParameters)
+    public virtual IStatementService Config(Type type, Enum method = null)
     {
-      SqlStatement sql = null;
-      //typeof(SqlManager).GetMethod(funcName).GetCustomAttributes(typeof(StatementOperateAttribute), false)
-      switch (funcName)
-      {
-        case "GetEntity":
-          sql = this.Select(conditionParameters).Select(SqlAttribute.GetSelectColumns(this.entityType)).Limit(1);
-          break;
-        case "GetEntityList":
-          sql = this.Select(conditionParameters).Select(SqlAttribute.GetSelectColumns(this.entityType));
-          break;
-        case "Update":
-          sql = this.Update(conditionParameters);
-          break;
-        case "Delete":
-          sql = this.Delete(conditionParameters);
-          break;
-        case "Insert":
-          sql = this.Insert(conditionParameters);
-          break;
-        case "InsertList":
-          sql = this.Insert(conditionParameters);
-          break;
-        default:
-          throw new NotImplementedException("service类未实现SqlManage方法 case: " + funcName);
-      }
-      return sql;
+      this.entityType = type;
+      this.method = method;
+      return this;
+    }
+
+
+    public virtual SqlStatement GetSql(object conditionParameters)
+    {
+      return this.Select(conditionParameters).Select(SqlAttribute.GetSelectColumns(this.entityType)).Limit(1);
+    }
+
+    public virtual SqlStatement GetEntitySql(object conditionParameters)
+    {
+      return this.Select(conditionParameters).Select(SqlAttribute.GetSelectColumns(this.entityType)).Limit(1);
+    }
+
+    public virtual SqlStatement GetListSql(object conditionParameters)
+    {
+      return this.Select(conditionParameters).Select(SqlAttribute.GetSelectColumns(this.entityType)); ;
+    }
+
+    public virtual SqlStatement GetEntityListSql(object conditionParameters)
+    {
+      return this.Select(conditionParameters).Select(SqlAttribute.GetSelectColumns(this.entityType)); ;
+    }
+
+    public virtual SqlStatement UpdateSql(object conditionParameters)
+    {
+      return this.Update(conditionParameters); ;
+    }
+
+    public virtual SqlStatement DeleteSql(object conditionParameters)
+    {
+      return this.Delete(conditionParameters);
+    }
+
+
+
+    public virtual SqlStatement InsertSql(object conditionParameters)
+    {
+      return this.Insert(conditionParameters);
+    }
+
+    public virtual SqlStatement InsertListSql(object conditionParameters)
+    {
+      return this.Insert(conditionParameters);
     }
 
 
@@ -109,6 +140,7 @@ namespace AyaEntity.SqlServices
                    .From(SqlAttribute.GetTableName(this.entityType));
       return this.insertSql;
     }
+
 
     #endregion
   }

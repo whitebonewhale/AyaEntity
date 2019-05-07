@@ -2,7 +2,9 @@ using AyaEntity.Base;
 using AyaEntity.DataUtils;
 using AyaEntity.SqlServices;
 using AyaEntity.Statement;
+using Dapper;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,7 +16,6 @@ namespace AyaEntity.Tests
   [TableName("blog_article")]
   class Article
   {
-
     [PrimaryKey]
     [IdentityKey]
     [ColumnName("id")]
@@ -76,6 +77,7 @@ namespace AyaEntity.Tests
 
 
     }
+
     /// <summary>
     /// 测试not select 特性
     /// </summary>
@@ -193,7 +195,7 @@ namespace AyaEntity.Tests
     public void TestDeleteMaxId()
     {
       // 使用自定义sql，查询最大id
-      int maxid = this.manage.UseService<ArticleSqlService>("GetMaxId").Get<int, Article>();
+      int maxid = this.manage.UseService<ArticleSqlService>(ArticleMehtod.MaxId).Get<int, Article>();
       // 测试自定义参数
       int row = this.manage.UseServiceDefault().Delete<Article>(new Article { Id = maxid - 2 }, "id > @Id");
       Assert.IsTrue(row > 1 && row < 3, "自定义参数删除异常，影响行数:" + row);
@@ -208,7 +210,7 @@ namespace AyaEntity.Tests
       this.manage.UseService(option =>
       {
         option.CurrentServiceKey = typeof(ArticleSqlService);
-        option.ServiceMethod = "GetMaxId";
+        option.MethodEnum = ArticleMehtod.MaxId;
       });
 
       int maxid = this.manage.Get<int, Article>();
@@ -228,7 +230,7 @@ namespace AyaEntity.Tests
       int maxid = this.manage.UseService<ArticleSqlService>("GetMaxId").Get<int, Article>();
       Article a = this.manage.UseServiceDefault().GetEntity<Article>(new Article { Id = maxid });
       // 执行自定义sql，模糊匹配，获取一个实体
-      Article artile = this.manage.ExcuteCustomGet<Article>(
+      Article artile = this.manage.QueryFirstCustomGet<Article>(
         new MysqlSelectStatement()
             .Select(SqlAttribute.GetSelectColumns(typeof(Article)))
             .Where(new { name = a.Name.Substring(0, 2) + "%" }, "article_name like @name")
@@ -246,7 +248,7 @@ namespace AyaEntity.Tests
     {
 
       // 执行自定义sql： 分组查询 获取字典
-      Dictionary<string, string> d = this.manage.ExcuteCustomGetList<KeyValuePair<string, string>>(
+      Dictionary<string, string> d = this.manage.QueryCustomGetList<KeyValuePair<string, string>>(
         new MysqlSelectStatement()
             .Select("count(*) as `Value`", "article_name as `Key`")
             .Group("article_name")
@@ -261,10 +263,10 @@ namespace AyaEntity.Tests
     [TestMethod]
     public void TestUpdate()
     {
-      Article max = this.manage.UseService<ArticleSqlService>("GetMaxIdEntity").GetEntity<Article>();
+      Article max = this.manage.UseService(ArticleMehtod.MaxIdEntity).GetEntity<ArticleSqlService, Article>();
       // 默认按照主键id更新数据
       string name = "update max name";
-      int row = this.manage.UseServiceDefault().Update<Article>(new Article { Name = name, Id = max.Id });
+      int row = this.manage.Update<Article>(new Article { Name = name, Id = max.Id });
       Article a = this.manage.GetEntity<Article>(new { id = max.Id });
       Assert.AreEqual(a.Name, name);
 
@@ -277,7 +279,7 @@ namespace AyaEntity.Tests
     [TestMethod]
     public void TestUpdateCustom()
     {
-      Article max = this.manage.UseService<ArticleSqlService>("GetMaxIdEntity").GetEntity<Article>();
+      Article max = this.manageGetEntity<Article>();
       // 默认按照主键id更新数据
       string title = "update title";
       int row = this.manage.UseServiceDefault().Update<Article>(new { Name = max.Name, Title = title, Id = max.Id }, "article_name=@Name AND id=@Id", "article_title=@Title");
