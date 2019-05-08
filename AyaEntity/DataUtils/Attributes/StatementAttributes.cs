@@ -29,6 +29,14 @@ namespace AyaEntity.DataUtils
   }
 
 
+  /// <summary>
+  /// 因为一些原因，不想插入此字段
+  /// </summary>
+  public class NotInsertAttribute : Attribute
+  {
+  }
+
+
 
   /// <summary>
   /// 因为一些原因，不想查询此字段

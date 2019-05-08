@@ -204,7 +204,8 @@ namespace AyaEntity.DataUtils
       {
         // 非自增列
         IdentityKeyAttribute identity = mbox.GetCustomAttribute<IdentityKeyAttribute>();
-        if (identity == null)
+        NotInsertAttribute not = mbox.GetCustomAttribute<NotInsertAttribute>();
+        if (identity == null && not == null)
         {
           ColumnNameAttribute m = mbox.GetCustomAttribute<ColumnNameAttribute>();
           results.Add(string.IsNullOrEmpty(m.ColumnName) ? mbox.Name : m.ColumnName, mbox.Name);
