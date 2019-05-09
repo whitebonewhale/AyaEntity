@@ -183,7 +183,7 @@ namespace AyaEntity.DataUtils
         if (m != null)
         {
           ColumnNameAttribute column = mbox.GetCustomAttribute<ColumnNameAttribute>();
-          return (string.IsNullOrEmpty(column.ColumnName)) ? mbox.Name : column.ColumnName;
+          return column == null ? mbox.Name : column.ColumnName;
         }
       }
       throw new InvalidOperationException("获取主键列错误，必须指定一个属性为主键，请为实体类“" + entityType.FullName + "”添加主键特性列");
@@ -207,8 +207,8 @@ namespace AyaEntity.DataUtils
         NotInsertAttribute not = mbox.GetCustomAttribute<NotInsertAttribute>();
         if (identity == null && not == null)
         {
-          ColumnNameAttribute m = mbox.GetCustomAttribute<ColumnNameAttribute>();
-          results.Add(string.IsNullOrEmpty(m.ColumnName) ? mbox.Name : m.ColumnName, mbox.Name);
+          ColumnNameAttribute column = mbox.GetCustomAttribute<ColumnNameAttribute>();
+          results.Add(column == null ? mbox.Name : column.ColumnName, mbox.Name);
         }
       }
       return results;
