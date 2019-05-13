@@ -34,7 +34,7 @@ namespace AyaEntity.Tests
   /// </summary>
   public class ArticleDBService : DBService
   {
-    public ArticleDBService(IDbConnection conn) : base(conn)
+    public ArticleDBService()
     {
     }
 

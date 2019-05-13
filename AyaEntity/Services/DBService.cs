@@ -15,13 +15,13 @@ namespace AyaEntity.Services
     /// <summary>
     /// 连接对象
     /// </summary>
-    protected IDbConnection Connection { get; }
+    protected IDbConnection Connection;
 
-
-    public DBService(IDbConnection conn)
+    public void SetConnection(IDbConnection connection)
     {
-      this.Connection = conn;
+      this.Connection = connection;
     }
+
 
 
 

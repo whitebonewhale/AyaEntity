@@ -38,10 +38,6 @@ namespace AyaEntity.Base
     /// 连接字符串
     /// </summary>
     public string ConnectionString { get; }
-    /// <summary>
-    /// 连接对象
-    /// </summary>
-    public IDbConnection Connection { get; protected set; }
 
 
 
@@ -54,11 +50,10 @@ namespace AyaEntity.Base
     public SqlManager(string conn, DBService defaultService = null)
     {
       ConnectionString = conn;
-      Connection = new MySqlConnection(conn);
       servicesPool = new Dictionary<Type, DBService>();
       if (defaultService == null)
       {
-        defaultService = new DBService(Connection);
+        defaultService = new DBService();
       }
       this.servicesPool.Add(typeof(DBService), defaultService);
     }
@@ -70,9 +65,9 @@ namespace AyaEntity.Base
     /// <param name="key"></param>
     /// <param name="service"></param>
     /// <returns></returns>
-    public SqlManager AddService<T>() where T : DBService
+    public SqlManager AddService<T>() where T : DBService, new()
     {
-      T service = (T)Activator.CreateInstance(typeof(T), Connection);
+      T service = new T();
       // 参数不允许null
       if (service == null)
       {
@@ -88,7 +83,9 @@ namespace AyaEntity.Base
     /// </summary>
     public T UseService<T>() where T : DBService
     {
-      return (T)this.servicesPool[typeof(T)];
+      T service = (T)this.servicesPool[typeof(T)];
+      service.SetConnection(new MySqlConnection(this.ConnectionString));
+      return service;
     }
 
     ///// <summary>
