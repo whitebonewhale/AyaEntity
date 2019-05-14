@@ -109,12 +109,18 @@ namespace AyaEntity.Services
     /// </summary>
     /// <typeparam name="TableEntity"></typeparam>
     /// <param name="parameters"></param>
+    /// <param name="lastInsertid">是否返回自增id，不返回行数</param>
     /// <returns></returns>
-    public int Insert<TableEntity>(TableEntity parameters)
+    public int Insert<TableEntity>(TableEntity parameters, bool lastInsertid = false)
     {
       Type type = typeof(TableEntity);
-      ISqlStatementToSql sql = CommandBuilder.BuildInsert(parameters, type);
-      return this.Connection.Execute(sql.ToSql(), sql.GetParameters());
+      ISqlStatementToSql sql = CommandBuilder.BuildInsert(parameters, type)
+                                              .LastInsertId(lastInsertid);
+      if (!lastInsertid)
+      {
+        return this.Connection.Execute(sql.ToSql(), sql.GetParameters());
+      }
+      return this.Connection.ExecuteScalar<int>(sql.ToSql(), sql.GetParameters());
     }
 
 

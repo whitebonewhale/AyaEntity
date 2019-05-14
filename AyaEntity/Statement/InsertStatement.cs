@@ -1,5 +1,5 @@
-﻿using AyaEntity.DataUtils;
-using AyaEntity.Command;
+﻿using AyaEntity.Command;
+using AyaEntity.DataUtils;
 using Dapper;
 using System;
 using System.Collections.Generic;
@@ -12,11 +12,13 @@ namespace AyaEntity.Statement
   /// <summary>
   /// select sql语句生成,实现其他select复杂语句可继承此类扩展重写即可
   /// </summary>
-  public class InsertStatement : SqlStatement
+  public class MysqlInsertStatement : SqlStatement
   {
 
-    Dictionary<string,string> insertColumns;
+    Dictionary<string, string> insertColumns;
 
+    public const string LAST_INSERT_ID = "SELECT LAST_INSERT_ID();";
+    bool lastInsertId = false;
 
 
     /// <summary>
@@ -32,14 +34,23 @@ namespace AyaEntity.Statement
       // set fields
       buffer.Append("(").Append(this.insertColumns.Keys.Join(",", m => m)).Append(")");
       buffer.Append(" VALUES(").Append(this.insertColumns.Values.Join(",", m => "@" + m)).Append(")");
+      if (this.lastInsertId)
+      {
+        buffer.Append(";").Append(LAST_INSERT_ID);
+      }
       return buffer.ToString();
     }
 
 
+    public MysqlInsertStatement LastInsertId(bool flag)
+    {
+      this.lastInsertId = flag;
+      return this;
+    }
 
 
     //git @github.com:whitebonewhale/AyaEntity.git
-    public InsertStatement Insert(Dictionary<string, string> insertColumns, object sqlParam)
+    public MysqlInsertStatement Insert(Dictionary<string, string> insertColumns, object sqlParam)
     {
       this.conditionParam = sqlParam;
       this.insertColumns = insertColumns;

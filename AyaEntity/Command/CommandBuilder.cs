@@ -88,15 +88,16 @@ namespace AyaEntity.Command
       return deleteSql;
     }
 
-    public static InsertStatement BuildInsert(object conditionParam, Type entityType)
+    public static MysqlInsertStatement BuildInsert(object conditionParam, Type entityType)
     {
 
-      InsertStatement insertSql = new InsertStatement();
+      MysqlInsertStatement insertSql = new MysqlInsertStatement();
       insertSql.Insert(SqlAttribute.GetInsertCoulmn(entityType), conditionParam)
                    .From(SqlAttribute.GetTableName(entityType));
       return insertSql;
     }
 
+   
 
     #endregion
   }

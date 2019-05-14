@@ -75,7 +75,7 @@ namespace AyaEntity.Tests
     {
 
       // 使用连接字符串 初始化manage  
-      SqlManager manage = new SqlManager($"Server={Config.server};Database={Config.dbName}; User={Config.username};Password={Config.pwd};charset=UTF8");
+      manage = new SqlManager($"Server={Config.server};Database={Config.dbName}; User={Config.username};Password={Config.pwd};charset=UTF8");
       // 使用默认db service
       DBService dbService = this.manage.UseService<DBService>();
       Article article = dbService.GetEntity<Article>(new Article { Id = 3 });
@@ -85,6 +85,15 @@ namespace AyaEntity.Tests
       this.articleService = this.manage.UseService<ArticleDBService>();
       Article max = articleService.GetMaxIdArticle();
 
+    }
+
+
+    [TestMethod]
+    public void GetLastInsertId()
+    {
+      // 插入实体数据
+      int id = articleService.Insert(new Article { Name = "test insert", Title = "测试插入数据" }, true);
+      Assert.IsTrue(id > 1, "插入单条数据错误，v:" + id);
     }
 
     /// <summary>

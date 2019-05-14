@@ -47,15 +47,11 @@ namespace AyaEntity.Base
     /// </summary>
     /// <param name="conn"></param>
 
-    public SqlManager(string conn, DBService defaultService = null)
+    public SqlManager(string conn)
     {
       ConnectionString = conn;
       servicesPool = new Dictionary<Type, DBService>();
-      if (defaultService == null)
-      {
-        defaultService = new DBService();
-      }
-      this.servicesPool.Add(typeof(DBService), defaultService);
+      this.servicesPool.Add(typeof(DBService), new DBService());
     }
 
 
